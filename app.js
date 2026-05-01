@@ -210,6 +210,65 @@ $('#cartBtn').addEventListener('click', openCart);
 $('#cartClose').addEventListener('click', closeCart);
 $('#cartOverlay').addEventListener('click', closeCart);
 
+// ----- CHECKOUT MODAL --------------------------------------
+$('#checkoutBtn').addEventListener('click', () => {
+  if (cart.length === 0) return showToast('El carrito está vacío');
+  closeCart();
+  $('#checkoutModal').classList.add('open');
+});
+
+$('#ckCancel').addEventListener('click', () => {
+  $('#checkoutModal').classList.remove('open');
+});
+
+$('#mpBtn').addEventListener('click', async () => {
+  const data = {
+    name: $('#ckName').value.trim(),
+    email: $('#ckEmail').value.trim(),
+    phone: $('#ckPhone').value.trim(),
+    dni: $('#ckDni').value.trim(),
+    address: $('#ckAddr').value.trim(),
+    city: $('#ckCity').value.trim(),
+    cp: $('#ckCp').value.trim()
+  };
+
+  if (!data.name || !data.email || !data.address) {
+    showToast('Completá los datos requeridos');
+    return;
+  }
+
+  const items = cart.map(i => ({
+    title: `${i.name} - ${i.size}`,
+    quantity: i.qty,
+    unit_price: i.price,
+    currency_id: 'ARS'
+  }));
+
+  try {
+    $('#mpBtn').innerHTML = 'Procesando pago...';
+    $('#mpBtn').disabled = true;
+
+    const res = await fetch(BACKEND_CREATE_PREFERENCE_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items, payer: data })
+    });
+
+    const result = await res.json();
+
+    if (result.init_point) {
+      window.location.href = result.init_point;
+    } else {
+      throw new Error('No se recibió link de pago');
+    }
+  } catch (err) {
+    console.error(err);
+    showToast('Error al conectar con MercadoPago');
+    $('#mpBtn').innerHTML = 'Pagar con MercadoPago';
+    $('#mpBtn').disabled = false;
+  }
+});
+
 // ----- INIT ------------------------------------------------
 document.addEventListener('DOMContentLoaded', () => {
   renderProducts();
