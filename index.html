@@ -42,62 +42,6 @@
   button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
   img { max-width: 100%; display: block; }
 
-  .product-card {
-  background: #2c2118;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.6);
-}
-
-.main-can {
-  width: 100%;
-  height: 320px;
-  object-fit: contain;
-  background: #1a140f;
-  padding: 20px;
-}
-
-.color-options {
-  display: flex;
-  gap: 8px;
-  margin: 15px 0;
-}
-
-.color-dot {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  cursor: pointer;
-  border: 2px solid #f5e8d3;
-}
-
-.color-dot.active {
-  border-color: #f5b800;
-  transform: scale(1.15);
-}
-
-.size-selector {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
-}
-
-.size-option {
-  flex: 1;
-  padding: 12px;
-  background: #3d2c20;
-  border: none;
-  color: #f5e8d3;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-.size-option.active {
-  background: #f5b800;
-  color: #1a140f;
-  font-weight: bold;
-}
-
   /* ============ NOISE OVERLAY ============ */
   body::before {
     content: '';
@@ -199,29 +143,102 @@
     .logo-mark { width: 30px; height: 30px; }
   }
 
-  <!-- HERO / FOTO PRINCIPAL DE LA LATA -->
-<section class="hero-product">
-  <div class="hero-content">
-    <img src="media/Lata OXIDUR.jpeg" alt="Lata OXIDUR" class="hero-lata">
-    <div class="hero-text">
-      <h1>ELEGÍ TU OXIDUR</h1>
-      <p>Esmalte antioxidante directo sobre óxido</p>
-      <a href="#productos" class="btn-primary">Ver productos</a>
-    </div>
-  </div>
-</section>
+  /* ============ HERO ============ */
+  .hero {
+    position: relative;
+    min-height: 92vh;
+    padding: 60px 32px;
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 40px;
+    align-items: center;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 80% 30%, rgba(255,91,31,0.18) 0%, transparent 55%),
+      radial-gradient(circle at 10% 80%, rgba(255,182,39,0.08) 0%, transparent 50%);
+    z-index: 0;
+  }
+  .hero-content { position: relative; z-index: 2; max-width: 720px; }
+  .hero-eyebrow {
+    display: inline-block;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.25em;
+    font-size: 13px;
+    color: var(--accent);
+    padding: 6px 14px;
+    border: 1px solid var(--accent);
+    margin-bottom: 28px;
+    animation: fadeUp .8s ease-out;
+  }
+  .hero h1 {
+    font-family: 'Anton', sans-serif;
+    font-size: clamp(56px, 9vw, 132px);
+    line-height: 0.92;
+    letter-spacing: -0.01em;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+    animation: fadeUp 1s ease-out;
+  }
+  .hero h1 .stroke {
+    -webkit-text-stroke: 2px var(--text);
+    color: transparent;
+  }
+  .hero h1 .accent-word {
+    color: var(--accent);
+    position: relative;
+    display: inline-block;
+  }
+  .hero h1 .accent-word::after {
+    content: '';
+    position: absolute;
+    left: -4px; right: -4px; bottom: 6px;
+    height: 8px;
+    background: rgba(255,91,31,0.25);
+    z-index: -1;
+  }
+  .hero p {
+    font-size: 18px;
+    color: var(--text-dim);
+    max-width: 520px;
+    margin-bottom: 36px;
+    animation: fadeUp 1.2s ease-out;
+  }
+  .hero-ctas { display: flex; gap: 14px; flex-wrap: wrap; animation: fadeUp 1.4s ease-out; }
+  .btn-primary {
+    background: var(--accent);
+    color: #0d0d0f;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800;
+    font-size: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 18px 32px;
+    transition: all .2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .btn-primary:hover { background: var(--text); transform: translate(-3px,-3px); box-shadow: 6px 6px 0 var(--accent); }
+  .btn-ghost {
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 18px 32px;
+    transition: all .2s;
+  }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
 
-<!-- PRODUCTOS -->
-<section class="products-section" id="productos">
-  <div class="section-header">
-    <h2>Elegí tu OXIDUR</h2>
-    <p>Disponible en 6 colores • Envases de 1L y 4L</p>
-  </div>
-
-  <div class="products-grid" id="productsGrid">
-    <!-- JS genera las tarjetas aquí -->
-  </div>
-</section>
   /* HERO VISUAL: ahora con video real */
   .hero-visual {
     position: relative;
@@ -503,181 +520,205 @@
     .showcase-grid { grid-template-columns: 1fr; }
   }
 
-  /* ============ PRODUCT GRID ============ */
+  /* ============ PRODUCT (single hero product) ============ */
   .products-section { background: var(--bg); }
-  .products-grid {
+  .product-hero {
     max-width: 1280px;
     margin: 0 auto;
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 24px;
-  }
-  .product-card {
     background: var(--bg-2);
     border: 1px solid var(--border);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     overflow: hidden;
-    transition: all .3s ease;
-    display: flex;
-    flex-direction: column;
-    position: relative;
   }
-  .product-card:hover {
-    transform: translateY(-6px);
-    border-color: var(--accent);
-    box-shadow: 0 20px 40px rgba(0,0,0,0.5);
-  }
-  .product-image {
+  .product-hero-image {
     position: relative;
-    aspect-ratio: 1/1;
-    background: var(--bg-3);
+    background:
+      radial-gradient(circle at 50% 60%, rgba(255,91,31,0.18) 0%, transparent 60%),
+      var(--bg-3);
+    aspect-ratio: 1/1.05;
     overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
+    border-right: 1px solid var(--border);
   }
-  .product-image::before {
-    content: '';
+  .product-hero-image img {
+    max-width: 78%;
+    max-height: 92%;
+    object-fit: contain;
+    filter: drop-shadow(0 30px 50px rgba(0,0,0,0.7));
+    transition: transform .5s ease;
+  }
+  .product-hero-image:hover img { transform: scale(1.04) rotate(-1deg); }
+  .product-hero-tag {
     position: absolute;
-    inset: 0;
-    background: radial-gradient(circle at 50% 70%, rgba(255,91,31,0.15) 0%, transparent 60%);
-    pointer-events: none;
-  }
-  /* Lata generada por CSS, simple y sólida */
-  .product-can {
-    width: 60%;
-    aspect-ratio: 1/1.18;
-    border-radius: 4px 4px 6px 6px;
-    position: relative;
-    transition: transform .4s ease;
-    box-shadow:
-      0 25px 50px rgba(0,0,0,0.7),
-      inset 0 -15px 30px rgba(0,0,0,0.35),
-      inset 0 8px 20px rgba(255,255,255,0.08);
-    overflow: hidden;
-  }
-  .product-card:hover .product-can { transform: scale(1.05) rotate(-2deg); }
-  .product-can::before {
-    /* Brillo lateral para dar volumen */
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(95deg,
-      rgba(255,255,255,0.18) 0%,
-      transparent 25%,
-      transparent 70%,
-      rgba(0,0,0,0.35) 100%);
-    pointer-events: none;
-  }
-  .product-can::after {
-    /* Tapa metálica arriba */
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 8%;
-    background: linear-gradient(180deg, #4a4d55 0%, #2a2d34 50%, #1a1c20 100%);
-    border-bottom: 1px solid rgba(0,0,0,0.4);
-  }
-  .product-can-label {
-    position: absolute;
-    left: 50%;
-    top: 52%;
-    transform: translate(-50%, -50%);
-    font-family: 'Anton', sans-serif;
-    color: white;
-    font-size: 30px;
-    letter-spacing: 0.05em;
-    text-shadow: 0 2px 6px rgba(0,0,0,0.5);
-    z-index: 2;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .product-can-label svg { width: 26px; height: 26px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); }
-  .product-can-size {
-    position: absolute;
-    bottom: 12%;
-    left: 50%;
-    transform: translateX(-50%);
-    font-family: 'Anton', sans-serif;
-    font-size: 18px;
-    color: white;
-    background: rgba(0,0,0,0.4);
-    padding: 4px 14px;
-    border-radius: 3px;
-    z-index: 2;
-    letter-spacing: 0.06em;
-    border: 1px solid rgba(255,255,255,0.15);
-  }
-  .product-can-tagline {
-    position: absolute;
-    bottom: 26%;
-    left: 50%;
-    transform: translateX(-50%);
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 9px;
-    font-weight: 600;
-    color: rgba(255,255,255,0.7);
-    text-transform: uppercase;
-    letter-spacing: 0.18em;
-    z-index: 2;
-    text-align: center;
-    white-space: nowrap;
-  }
-
-  .product-tag {
-    position: absolute;
-    top: 14px; left: 14px;
+    top: 24px; left: 24px;
     background: var(--accent);
     color: #0d0d0f;
     font-family: 'Barlow Condensed', sans-serif;
     font-weight: 800;
-    font-size: 11px;
+    font-size: 12px;
     text-transform: uppercase;
-    letter-spacing: 0.12em;
-    padding: 5px 10px;
+    letter-spacing: 0.14em;
+    padding: 6px 12px;
     z-index: 3;
   }
-
-  .product-info {
-    padding: 24px;
-    display: flex;
-    flex-direction: column;
-    flex: 1;
+  .product-hero-color-overlay {
+    position: absolute;
+    inset: 0;
+    background: var(--tint, transparent);
+    mix-blend-mode: color;
+    opacity: var(--tint-strength, 0);
+    transition: opacity .35s ease;
+    pointer-events: none;
   }
-  .product-name {
+  .product-hero-color-label {
+    position: absolute;
+    bottom: 24px; left: 24px;
     font-family: 'Anton', sans-serif;
     font-size: 28px;
     text-transform: uppercase;
-    letter-spacing: 0.02em;
-    margin-bottom: 4px;
-  }
-  .product-meta {
-    color: var(--text-dim);
-    font-size: 14px;
-    font-family: 'Barlow Condensed', sans-serif;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    margin-bottom: 18px;
+    letter-spacing: 0.05em;
+    color: var(--text);
+    z-index: 3;
+    background: rgba(13,13,15,0.7);
+    padding: 4px 14px;
+    backdrop-filter: blur(6px);
   }
 
-  .size-selector {
+  .product-hero-info {
+    padding: 48px;
     display: flex;
-    gap: 8px;
-    margin-bottom: 20px;
+    flex-direction: column;
+    justify-content: center;
+    gap: 28px;
+  }
+  .product-hero-eyebrow {
+    font-family: 'Barlow Condensed', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.25em;
+    font-size: 12px;
+    color: var(--accent);
+    font-weight: 700;
+  }
+  .product-hero-title {
+    font-family: 'Anton', sans-serif;
+    font-size: clamp(44px, 5vw, 64px);
+    line-height: 0.95;
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+  }
+  .product-hero-desc {
+    color: var(--text-dim);
+    font-size: 16px;
+    line-height: 1.6;
+  }
+  .product-hero-price {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+  }
+  .product-hero-price .amount {
+    font-family: 'Anton', sans-serif;
+    font-size: 56px;
+    line-height: 1;
+  }
+  .product-hero-price .currency {
+    font-family: 'Anton', sans-serif;
+    font-size: 28px;
+    color: var(--text-dim);
+  }
+  .product-hero-price .installments {
+    color: var(--text-dim);
+    font-size: 14px;
+    margin-left: 12px;
+  }
+
+  .selector-block {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .selector-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    font-size: 12px;
+    color: var(--text-dim);
+    font-weight: 600;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .selector-label .current {
+    color: var(--text);
+    font-weight: 700;
+  }
+
+  /* Color swatches */
+  .color-swatches {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .color-swatch {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    cursor: pointer;
+    position: relative;
+    transition: all .2s;
+    background-clip: padding-box;
+  }
+  .color-swatch:hover {
+    border-color: var(--text-dim);
+    transform: scale(1.06);
+  }
+  .color-swatch.active {
+    border-color: var(--accent);
+    transform: scale(1.1);
+    box-shadow: 0 0 0 3px rgba(255,91,31,0.2);
+  }
+  .color-swatch.active::after {
+    content: '';
+    position: absolute;
+    inset: 4px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.4);
+    pointer-events: none;
+  }
+
+  /* Size options */
+  .size-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
   }
   .size-option {
-    flex: 1;
-    padding: 10px;
+    padding: 16px;
     border: 1px solid var(--border);
     background: var(--bg);
-    font-family: 'Barlow Condensed', sans-serif;
-    font-weight: 700;
+    font-family: 'Anton', sans-serif;
+    font-size: 18px;
     text-transform: uppercase;
-    letter-spacing: 0.1em;
-    font-size: 13px;
+    letter-spacing: 0.04em;
     color: var(--text);
     cursor: pointer;
     transition: all .2s;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .size-option .size-rendimiento {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 500;
   }
   .size-option:hover { border-color: var(--accent); }
   .size-option.active {
@@ -685,42 +726,57 @@
     color: #0d0d0f;
     border-color: var(--accent);
   }
+  .size-option.active .size-rendimiento { color: rgba(13,13,15,0.7); }
 
-  .product-bottom {
-    margin-top: auto;
+  /* Quantity + add to cart */
+  .product-actions {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 12px;
+  }
+  .qty-selector {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 14px;
+    border: 1px solid var(--border);
+    background: var(--bg);
   }
-  .product-price {
-    font-family: 'Anton', sans-serif;
-    font-size: 32px;
+  .qty-selector button {
+    width: 44px;
+    height: 56px;
+    background: transparent;
     color: var(--text);
+    font-size: 20px;
+    transition: all .2s;
   }
-  .product-price-currency { font-size: 18px; color: var(--text-dim); }
+  .qty-selector button:hover { background: var(--bg-3); color: var(--accent); }
+  .qty-selector .qty-num {
+    width: 50px;
+    text-align: center;
+    font-family: 'Anton', sans-serif;
+    font-size: 20px;
+  }
+
   .add-cart {
-    background: var(--text);
+    background: var(--accent);
     color: #0d0d0f;
-    font-family: 'Barlow Condensed', sans-serif;
-    font-weight: 800;
-    font-size: 13px;
+    font-family: 'Anton', sans-serif;
+    font-size: 20px;
     text-transform: uppercase;
-    letter-spacing: 0.12em;
-    padding: 12px 20px;
+    letter-spacing: 0.04em;
+    padding: 16px 24px;
     transition: all .2s;
     display: flex;
     align-items: center;
-    gap: 8px;
+    justify-content: center;
+    gap: 12px;
   }
-  .add-cart:hover { background: var(--accent); }
+  .add-cart:hover { background: var(--text); }
   .add-cart.added { background: var(--success); color: #fff; }
 
   @media (max-width: 900px) {
-    .products-grid { grid-template-columns: repeat(2, 1fr); }
-  }
-  @media (max-width: 600px) {
-    .products-grid { grid-template-columns: 1fr; }
+    .product-hero { grid-template-columns: 1fr; }
+    .product-hero-image { aspect-ratio: 1/1; border-right: none; border-bottom: 1px solid var(--border); }
+    .product-hero-info { padding: 32px 24px; gap: 24px; }
   }
 
   /* ============ SURFACES (con foto real) ============ */
@@ -1440,15 +1496,70 @@
   </div>
 </section>
 
-<!-- PRODUCTS -->
+<!-- PRODUCT (single hero) -->
 <section class="products-section" id="productos">
   <div class="section-header">
-    <div class="section-eyebrow">Catálogo</div>
-    <h2 class="section-title">Elegí tu<br>OXIDUR.</h2>
-    <p class="section-subtitle">Disponible en 6 colores y 2 presentaciones. Mismo poder antióxido en todos.</p>
+    <div class="section-eyebrow">Producto</div>
+    <h2 class="section-title">OXIDUR.</h2>
+    <p class="section-subtitle">Elegí color y tamaño. Mismo poder antióxido en cualquier presentación.</p>
   </div>
-  <div class="products-grid" id="productsGrid">
-    <!-- generado por JS -->
+
+  <div class="product-hero">
+    <div class="product-hero-image">
+      <span class="product-hero-tag" id="productTag">MÁS VENDIDO</span>
+      <img src="media/images/lata-oxidur.jpeg" alt="Lata de OXIDUR esmalte antioxidante" id="productImg">
+      <div class="product-hero-color-overlay" id="productColorOverlay"></div>
+      <div class="product-hero-color-label" id="productColorLabel">Negro</div>
+    </div>
+
+    <div class="product-hero-info">
+      <div>
+        <div class="product-hero-eyebrow">Esmalte Antioxidante · Base Acuosa</div>
+        <h3 class="product-hero-title" id="productTitle">OXIDUR Negro</h3>
+      </div>
+
+      <p class="product-hero-desc">
+        Esmalte de base acuosa para pintar directamente sobre superficies metálicas oxidadas.
+        Sin lijar, sin solventes. Anticorrosivo, alta adherencia y resistente a la lluvia.
+      </p>
+
+      <div class="product-hero-price">
+        <span class="currency">$</span>
+        <span class="amount" id="productPrice">8.500</span>
+        <span class="installments" id="productInstallments">3 cuotas sin interés de $2.833</span>
+      </div>
+
+      <div class="selector-block">
+        <div class="selector-label">
+          <span>Color</span>
+          <span class="current" id="colorCurrent">Negro</span>
+        </div>
+        <div class="color-swatches" id="colorSwatches">
+          <!-- generado por JS -->
+        </div>
+      </div>
+
+      <div class="selector-block">
+        <div class="selector-label">
+          <span>Presentación</span>
+        </div>
+        <div class="size-options" id="sizeOptions">
+          <!-- generado por JS -->
+        </div>
+      </div>
+
+      <div class="product-actions">
+        <div class="qty-selector">
+          <button id="qtyMinus">−</button>
+          <span class="qty-num" id="qtyNum">1</span>
+          <button id="qtyPlus">+</button>
+        </div>
+        <button class="add-cart" id="addCartBtn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 2l1.5 4M6 2H4M7.5 6h13L19 13H8.5M7.5 6L8.5 13"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg>
+          Agregar al carrito
+        </button>
+      </div>
+    </div>
   </div>
 </section>
 
