@@ -2,6 +2,12 @@
 // OXIDUR · Tienda online
 // ===========================================================
 
+// ----- CONFIGURACIÓN DE WHATSAPP ------------------------
+// Pegá tu número con código de país sin "+", sin espacios ni guiones.
+// Ejemplo Argentina: 5491123456789  (54 = país, 9 = celular, 11 = área, número)
+const WHATSAPP_NUMBER = '5491123456789'; // ← REEMPLAZAR con tu número
+const WHATSAPP_MESSAGE = 'Hola! Quiero hacer una consulta sobre OXIDUR';
+
 // ----- CONFIGURACIÓN DE MERCADOPAGO ---------------------
 // Reemplazá estos valores con tus credenciales reales:
 // 1) Conseguilas en https://www.mercadopago.com.ar/developers/panel
@@ -369,6 +375,12 @@ renderColorSwatches();
 renderSizeOptions();
 updateProductView();
 renderCart();
+
+// Configurar todos los botones de WhatsApp con el número y mensaje
+const waUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`;
+$$('.wa-link').forEach(link => {
+  link.href = waUrl;
+});
 
 // Smooth scroll para anchors
 $$('a[href^="#"]').forEach(a => {
