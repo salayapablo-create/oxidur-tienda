@@ -119,12 +119,96 @@ function bindProductEvents() {
   });
 }
 
-// ----- CARRITO y resto del código (mantengo lo que ya tenías) -------------
+// ----- CARRITO ---------------------------------------------
 const cart = [];
 
-function addToCart(item) { /* ... tu código anterior ... */ }
-function renderCart() { /* ... tu código anterior ... */ }
-// ... (todo el resto del carrito, drawer, toast, checkout, etc.)
+function addToCart(item) {
+  const key = `${item.productId}-${item.sizeId}-${item.colorId}`;
+  const existing = cart.find(i => i.key === key);
+  if (existing) {
+    existing.qty += 1;
+  } else {
+    cart.push({ ...item, key, qty: 1 });
+  }
+  renderCart();
+  openCart();   // ← Abre automáticamente el carrito al agregar
+}
+
+function renderCart() {
+  const body = $('#cartBody');
+  $('#cartCount').textContent = cart.reduce((sum, i) => sum + i.qty, 0);
+  $('#cartTotal').textContent = fmt(cart.reduce((sum, i) => sum + i.price * i.qty, 0));
+  $('#checkoutBtn').disabled = cart.length === 0;
+
+  if (cart.length === 0) {
+    body.innerHTML = `
+      <div class="cart-empty">
+        <p>Tu carrito está vacío</p>
+      </div>`;
+    return;
+  }
+
+  body.innerHTML = cart.map(item => `
+    <div class="cart-item">
+      <div class="cart-item-info">
+        <div>${item.name} - ${item.size}</div>
+        <div class="cart-item-controls">
+          <button class="qty-btn" data-action="dec" data-key="${item.key}">−</button>
+          <span>${item.qty}</span>
+          <button class="qty-btn" data-action="inc" data-key="${item.key}">+</button>
+        </div>
+      </div>
+      <div class="cart-item-right">
+        <div>${fmt(item.price * item.qty)}</div>
+        <button class="cart-item-remove" data-key="${item.key}">Eliminar</button>
+      </div>
+    </div>
+  `).join('');
+
+  // Bind events del carrito
+  body.querySelectorAll('[data-action]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const key = btn.dataset.key;
+      const action = btn.dataset.action;
+      if (action === 'inc') updateQty(key, 1);
+      else if (action === 'dec') updateQty(key, -1);
+      else if (action === 'remove') removeFromCart(key);
+    });
+  });
+}
+
+function updateQty(key, delta) {
+  const item = cart.find(i => i.key === key);
+  if (item) {
+    item.qty += delta;
+    if (item.qty <= 0) removeFromCart(key);
+    else renderCart();
+  }
+}
+
+function removeFromCart(key) {
+  const idx = cart.findIndex(i => i.key === key);
+  if (idx > -1) cart.splice(idx, 1);
+  renderCart();
+}
+
+// ----- CART DRAWER -----------------------------------------
+function openCart() {
+  $('#cartDrawer').classList.add('open');
+  $('#cartOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeCart() {
+  $('#cartDrawer').classList.remove('open');
+  $('#cartOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// Bind botones del carrito
+$('#cartBtn').addEventListener('click', openCart);
+$('#cartClose').addEventListener('click', closeCart);
+$('#cartOverlay').addEventListener('click', closeCart);
 
 // ----- INIT ------------------------------------------------
 document.addEventListener('DOMContentLoaded', () => {
