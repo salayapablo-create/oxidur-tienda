@@ -13,7 +13,7 @@ app.use(express.static('.')); // Sirve el frontend (index.html, media, etc.)
 
 // ==================== CONFIGURACIÓN ====================
 // ⚠️ REEMPLAZÁ ESTO CON TUS CREDENCIALES REALES DE PRODUCCIÓN
-const MP_ACCESS_TOKEN = 'APP_USR-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'; // ← Tu Access Token real
+const MP_ACCESS_TOKEN = 'APP_USR-3928310919354671-043022-0e5e8ce01f6fea12c09fe9a17324ae78-246366612'; // ← Tu Access Token real
 
 const SITE_URL = 'https://tiendaoxidur.com';   // ← Cambia por tu dominio real
 
