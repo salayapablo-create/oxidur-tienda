@@ -54,22 +54,41 @@
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
 
-  /* ============ TOP BANNER ============ */
+  /* ============ TOP BANNER (más fuerte) ============ */
   .top-banner {
-    background: var(--accent);
+    background: linear-gradient(90deg, var(--accent) 0%, #ff7733 50%, var(--accent) 100%);
+    background-size: 200% 100%;
+    animation: bannerShine 6s ease-in-out infinite;
     color: #0d0d0f;
     text-align: center;
-    padding: 10px 16px;
+    padding: 14px 16px;
     font-family: 'Barlow Condensed', sans-serif;
-    font-weight: 700;
+    font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: 0.12em;
-    font-size: 13px;
+    letter-spacing: 0.14em;
+    font-size: 15px;
     position: relative;
     z-index: 50;
+    border-bottom: 2px solid #0d0d0f;
   }
-  .top-banner span { display: inline-block; margin: 0 18px; }
-  .top-banner svg { display: inline-block; vertical-align: middle; margin-right: 6px; }
+  @keyframes bannerShine {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+  .top-banner span { display: inline-block; margin: 0 22px; }
+  .top-banner svg { display: inline-block; vertical-align: middle; margin-right: 8px; }
+  .top-banner .truck-strong {
+    font-size: 17px;
+    font-weight: 900;
+    letter-spacing: 0.18em;
+  }
+
+  @media (max-width: 700px) {
+    .top-banner { font-size: 12px; padding: 10px 12px; letter-spacing: 0.1em; }
+    .top-banner .truck-strong { font-size: 13px; }
+    .top-banner span { margin: 0 8px; }
+    .top-banner span:not(.truck-strong) { display: none; }
+  }
 
   /* ============ NAV ============ */
   nav {
@@ -521,7 +540,46 @@
   }
 
   /* ============ PRODUCT (single hero product) ============ */
-  .products-section { background: var(--bg); }
+  .products-section {
+    background: var(--bg);
+    padding-top: 60px;
+  }
+
+  /* Mini hero arriba del producto */
+  .product-prehero {
+    max-width: 1280px;
+    margin: 0 auto 32px;
+    text-align: center;
+    padding: 0 32px;
+  }
+  .product-prehero h1 {
+    font-family: 'Anton', sans-serif;
+    font-size: clamp(40px, 6vw, 80px);
+    line-height: 0.95;
+    text-transform: uppercase;
+    letter-spacing: -0.005em;
+    margin-bottom: 16px;
+  }
+  .product-prehero h1 .accent {
+    color: var(--accent);
+    position: relative;
+    display: inline-block;
+  }
+  .product-prehero h1 .accent::after {
+    content: '';
+    position: absolute;
+    left: -4px; right: -4px; bottom: 4px;
+    height: 6px;
+    background: rgba(255,91,31,0.25);
+    z-index: -1;
+  }
+  .product-prehero .lead {
+    font-size: 17px;
+    color: var(--text-dim);
+    max-width: 620px;
+    margin: 0 auto;
+  }
+
   .product-hero {
     max-width: 1280px;
     margin: 0 auto;
@@ -530,7 +588,35 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     overflow: hidden;
+    position: relative;
   }
+
+  /* Cinta de envío gratis dentro del producto */
+  .free-shipping-ribbon {
+    background: linear-gradient(90deg, #1f8a3f 0%, #2ecc71 50%, #1f8a3f 100%);
+    background-size: 200% 100%;
+    animation: bannerShine 5s ease-in-out infinite;
+    color: #fff;
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800;
+    font-size: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    grid-column: 1 / -1;
+    border-bottom: 1px solid rgba(0,0,0,0.2);
+  }
+  .free-shipping-ribbon svg { flex-shrink: 0; }
+  .free-shipping-ribbon strong {
+    font-family: 'Anton', sans-serif;
+    font-size: 22px;
+    letter-spacing: 0.04em;
+  }
+
   .product-hero-image {
     position: relative;
     background:
@@ -886,11 +972,12 @@
     max-width: 520px;
   }
 
-  /* ============ SHIPPING BANNER ============ */
+  /* ============ SHIPPING BANNER (más impactante) ============ */
   .shipping {
-    background: var(--accent);
+    background:
+      linear-gradient(135deg, var(--accent) 0%, #ff7733 100%);
     color: #0d0d0f;
-    padding: 70px 32px;
+    padding: 90px 32px;
     text-align: center;
     position: relative;
     overflow: hidden;
@@ -901,18 +988,78 @@
     top: 50%;
     left: -10%;
     font-family: 'Anton', sans-serif;
-    font-size: 200px;
-    color: rgba(13,13,15,0.06);
+    font-size: 220px;
+    color: rgba(13,13,15,0.07);
     letter-spacing: 0.08em;
     white-space: nowrap;
     transform: translateY(-50%);
     pointer-events: none;
   }
-  .shipping-content { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; }
+  .shipping-content {
+    position: relative;
+    z-index: 1;
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 50px;
+    align-items: center;
+    text-align: left;
+  }
+  .shipping-stamp {
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    background: #0d0d0f;
+    color: var(--accent);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transform: rotate(-10deg);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+    position: relative;
+    flex-shrink: 0;
+    animation: stampFloat 4s ease-in-out infinite;
+  }
+  .shipping-stamp::before {
+    content: '';
+    position: absolute;
+    inset: 12px;
+    border: 2px dashed rgba(255,91,31,0.5);
+    border-radius: 50%;
+  }
+  @keyframes stampFloat {
+    0%, 100% { transform: rotate(-10deg) translateY(0); }
+    50% { transform: rotate(-10deg) translateY(-8px); }
+  }
+  .shipping-stamp .stamp-small {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800;
+    font-size: 14px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: -2px;
+  }
+  .shipping-stamp .stamp-big {
+    font-family: 'Anton', sans-serif;
+    font-size: 56px;
+    line-height: 1;
+    letter-spacing: 0.02em;
+  }
+  .shipping-stamp .stamp-tiny {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-top: 4px;
+    color: var(--text);
+  }
   .shipping h2 {
     font-family: 'Anton', sans-serif;
     font-size: clamp(48px, 8vw, 96px);
-    line-height: 1;
+    line-height: 0.95;
     text-transform: uppercase;
     letter-spacing: -0.01em;
   }
@@ -929,6 +1076,37 @@
     text-transform: uppercase;
     letter-spacing: 0.1em;
     margin-top: 20px;
+    color: rgba(13,13,15,0.85);
+  }
+  .shipping-features {
+    display: flex;
+    gap: 24px;
+    margin-top: 28px;
+    flex-wrap: wrap;
+  }
+  .shipping-feat {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #0d0d0f;
+  }
+  .shipping-feat svg {
+    background: #0d0d0f;
+    color: var(--accent);
+    border-radius: 50%;
+    padding: 5px;
+  }
+
+  @media (max-width: 800px) {
+    .shipping-content { grid-template-columns: 1fr; text-align: center; gap: 30px; }
+    .shipping-stamp { margin: 0 auto; width: 180px; height: 180px; }
+    .shipping-stamp .stamp-big { font-size: 46px; }
+    .shipping-features { justify-content: center; }
   }
 
   /* ============ FOOTER ============ */
@@ -1326,9 +1504,9 @@
 
 <!-- TOP BANNER -->
 <div class="top-banner">
-  <span><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M3 4a1 1 0 0 1 1-1h11a1 1 0 0 1 1 1v3h3a1 1 0 0 1 .8.4l2 2.667a1 1 0 0 1 .2.6V17a1 1 0 0 1-1 1h-1.05a2.5 2.5 0 0 1-4.9 0H9.95a2.5 2.5 0 0 1-4.9 0H4a1 1 0 0 1-1-1V4Zm13 5v6h.05a2.5 2.5 0 0 1 4.9 0H20v-5.667L18.5 9H16ZM7.5 18a1 1 0 1 0 0-2 1 1 0 0 0 0 2Zm10 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"/></svg>Envío gratis a todo el país</span>
+  <span class="truck-strong"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M3 4a1 1 0 0 1 1-1h11a1 1 0 0 1 1 1v3h3a1 1 0 0 1 .8.4l2 2.667a1 1 0 0 1 .2.6V17a1 1 0 0 1-1 1h-1.05a2.5 2.5 0 0 1-4.9 0H9.95a2.5 2.5 0 0 1-4.9 0H4a1 1 0 0 1-1-1V4Zm13 5v6h.05a2.5 2.5 0 0 1 4.9 0H20v-5.667L18.5 9H16ZM7.5 18a1 1 0 1 0 0-2 1 1 0 0 0 0 2Zm10 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"/></svg>Envío GRATIS a todo el país</span>
   <span>·</span>
-  <span>3 cuotas sin interés con MercadoPago</span>
+  <span>3 cuotas sin interés</span>
   <span>·</span>
   <span>Stock disponible</span>
 </div>
@@ -1352,33 +1530,75 @@
   </button>
 </nav>
 
-<!-- HERO -->
-<section class="hero">
-  <div class="hero-content">
-    <span class="hero-eyebrow">Esmalte Antioxidante · Base Acuosa</span>
-    <h1>
-      <span class="stroke">Directo</span><br>
-      sobre el<br>
-      <span class="accent-word">óxido.</span>
-    </h1>
-    <p>Esmalte de base acuosa para pintar directamente sobre superficies metálicas oxidadas. Sin lijar, sin solventes, sin vueltas. Protección total contra la corrosión.</p>
-    <div class="hero-ctas">
-      <a href="#productos" class="btn-primary">
-        Ver productos
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
-      </a>
-      <a href="#aplicacion" class="btn-ghost">Cómo se aplica</a>
-    </div>
+<!-- PRODUCT (arriba: lo más importante) -->
+<section class="products-section" id="productos">
+  <div class="product-prehero">
+    <h1>Directo sobre el <span class="accent">óxido.</span></h1>
+    <p class="lead">Esmalte de base acuosa para pintar metales oxidados sin lijar. Elegí color y tamaño, y lo recibís en tu casa.</p>
   </div>
-  <div class="hero-visual">
-    <video autoplay muted loop playsinline poster="media/images/can-hero.jpeg">
-      <source src="media/videos/video-01.mp4" type="video/mp4">
-      <img src="media/images/can-hero.jpeg" alt="OXIDUR esmalte antioxidante">
-    </video>
-    <div class="hero-visual-overlay"></div>
-    <div class="hero-badge">
-      <span class="small">SIN</span>
-      <span class="big">LIJAR</span>
+
+  <div class="product-hero">
+    <!-- Cinta de envío gratis bien visible -->
+    <div class="free-shipping-ribbon">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M3 4a1 1 0 0 1 1-1h11a1 1 0 0 1 1 1v3h3a1 1 0 0 1 .8.4l2 2.667a1 1 0 0 1 .2.6V17a1 1 0 0 1-1 1h-1.05a2.5 2.5 0 0 1-4.9 0H9.95a2.5 2.5 0 0 1-4.9 0H4a1 1 0 0 1-1-1V4Zm13 5v6h.05a2.5 2.5 0 0 1 4.9 0H20v-5.667L18.5 9H16ZM7.5 18a1 1 0 1 0 0-2 1 1 0 0 0 0 2Zm10 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"/></svg>
+      <strong>ENVÍO GRATIS</strong>
+      <span>a todo el país · sin mínimo de compra</span>
+    </div>
+
+    <div class="product-hero-image">
+      <span class="product-hero-tag" id="productTag">MÁS VENDIDO</span>
+      <img src="media/images/lata-oxidur.jpeg" alt="Lata de OXIDUR esmalte antioxidante" id="productImg">
+      <div class="product-hero-color-overlay" id="productColorOverlay"></div>
+      <div class="product-hero-color-label" id="productColorLabel">Negro</div>
+    </div>
+
+    <div class="product-hero-info">
+      <div>
+        <div class="product-hero-eyebrow">Esmalte Antioxidante · Base Acuosa</div>
+        <h3 class="product-hero-title" id="productTitle">OXIDUR Negro</h3>
+      </div>
+
+      <p class="product-hero-desc">
+        Esmalte de base acuosa para pintar directamente sobre superficies metálicas oxidadas.
+        Sin lijar, sin solventes. Anticorrosivo, alta adherencia y resistente a la lluvia.
+      </p>
+
+      <div class="product-hero-price">
+        <span class="currency">$</span>
+        <span class="amount" id="productPrice">8.500</span>
+        <span class="installments" id="productInstallments">3 cuotas sin interés de $2.833</span>
+      </div>
+
+      <div class="selector-block">
+        <div class="selector-label">
+          <span>Color</span>
+          <span class="current" id="colorCurrent">Negro</span>
+        </div>
+        <div class="color-swatches" id="colorSwatches">
+          <!-- generado por JS -->
+        </div>
+      </div>
+
+      <div class="selector-block">
+        <div class="selector-label">
+          <span>Presentación</span>
+        </div>
+        <div class="size-options" id="sizeOptions">
+          <!-- generado por JS -->
+        </div>
+      </div>
+
+      <div class="product-actions">
+        <div class="qty-selector">
+          <button id="qtyMinus">−</button>
+          <span class="qty-num" id="qtyNum">1</span>
+          <button id="qtyPlus">+</button>
+        </div>
+        <button class="add-cart" id="addCartBtn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 2l1.5 4M6 2H4M7.5 6h13L19 13H8.5M7.5 6L8.5 13"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg>
+          Agregar al carrito
+        </button>
+      </div>
     </div>
   </div>
 </section>
@@ -1496,73 +1716,6 @@
   </div>
 </section>
 
-<!-- PRODUCT (single hero) -->
-<section class="products-section" id="productos">
-  <div class="section-header">
-    <div class="section-eyebrow">Producto</div>
-    <h2 class="section-title">OXIDUR.</h2>
-    <p class="section-subtitle">Elegí color y tamaño. Mismo poder antióxido en cualquier presentación.</p>
-  </div>
-
-  <div class="product-hero">
-    <div class="product-hero-image">
-      <span class="product-hero-tag" id="productTag">MÁS VENDIDO</span>
-      <img src="media/images/lata-oxidur.jpeg" alt="Lata de OXIDUR esmalte antioxidante" id="productImg">
-      <div class="product-hero-color-overlay" id="productColorOverlay"></div>
-      <div class="product-hero-color-label" id="productColorLabel">Negro</div>
-    </div>
-
-    <div class="product-hero-info">
-      <div>
-        <div class="product-hero-eyebrow">Esmalte Antioxidante · Base Acuosa</div>
-        <h3 class="product-hero-title" id="productTitle">OXIDUR Negro</h3>
-      </div>
-
-      <p class="product-hero-desc">
-        Esmalte de base acuosa para pintar directamente sobre superficies metálicas oxidadas.
-        Sin lijar, sin solventes. Anticorrosivo, alta adherencia y resistente a la lluvia.
-      </p>
-
-      <div class="product-hero-price">
-        <span class="currency">$</span>
-        <span class="amount" id="productPrice">8.500</span>
-        <span class="installments" id="productInstallments">3 cuotas sin interés de $2.833</span>
-      </div>
-
-      <div class="selector-block">
-        <div class="selector-label">
-          <span>Color</span>
-          <span class="current" id="colorCurrent">Negro</span>
-        </div>
-        <div class="color-swatches" id="colorSwatches">
-          <!-- generado por JS -->
-        </div>
-      </div>
-
-      <div class="selector-block">
-        <div class="selector-label">
-          <span>Presentación</span>
-        </div>
-        <div class="size-options" id="sizeOptions">
-          <!-- generado por JS -->
-        </div>
-      </div>
-
-      <div class="product-actions">
-        <div class="qty-selector">
-          <button id="qtyMinus">−</button>
-          <span class="qty-num" id="qtyNum">1</span>
-          <button id="qtyPlus">+</button>
-        </div>
-        <button class="add-cart" id="addCartBtn">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 2l1.5 4M6 2H4M7.5 6h13L19 13H8.5M7.5 6L8.5 13"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg>
-          Agregar al carrito
-        </button>
-      </div>
-    </div>
-  </div>
-</section>
-
 <!-- VIDEO BANNER full -->
 <section class="video-banner">
   <video autoplay muted loop playsinline>
@@ -1621,8 +1774,29 @@
 <!-- SHIPPING BANNER -->
 <section class="shipping">
   <div class="shipping-content">
-    <h2>Envío <span>gratis</span> a todo el país.</h2>
-    <p>Hacemos llegar tu OXIDUR a cualquier punto de Argentina. Sin mínimo de compra.</p>
+    <div class="shipping-stamp">
+      <span class="stamp-small">Envío</span>
+      <span class="stamp-big">GRATIS</span>
+      <span class="stamp-tiny">a todo el país</span>
+    </div>
+    <div>
+      <h2>Llega <span>gratis</span><br>a tu casa.</h2>
+      <p>Hacemos llegar tu OXIDUR a cualquier punto de Argentina.</p>
+      <div class="shipping-features">
+        <div class="shipping-feat">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>
+          Sin mínimo de compra
+        </div>
+        <div class="shipping-feat">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>
+          Entrega en 3 a 7 días
+        </div>
+        <div class="shipping-feat">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>
+          Seguimiento online
+        </div>
+      </div>
+    </div>
   </div>
 </section>
 
