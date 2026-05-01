@@ -34,11 +34,8 @@ const fmt = n => '$' + n.toLocaleString('es-AR');
 const $ = sel => document.querySelector(sel);
 const $$ = sel => document.querySelectorAll(sel);
 
-// ----- RENDER PRODUCTOS ------------------------------------
 function renderProducts() {
   const grid = $('#productsGrid');
-  if (!grid) return;
-
   const cards = COLORS.map(color => {
     const product = PRODUCTS[0];
     const initialSize = product.sizes[0];
@@ -47,12 +44,8 @@ function renderProducts() {
     return `
       <article class="product-card" data-color="${color.id}">
         <div class="product-image">
+          <img src="media/Lata OXIDUR.jpeg" alt="Lata OXIDUR ${color.name}" style="width:100%; height:auto; border-radius:8px;">
           <span class="product-tag">${product.tag}</span>
-          <div class="product-can" style="background:${color.hex};">
-            <span class="product-can-tagline" style="color:${isLight ? '#1a1a1c' : 'white'};">ESMALTE ANTIOXIDANTE</span>
-            <span class="product-can-label" style="color:${isLight ? '#1a1a1c' : 'white'};">OXIDUR</span>
-            <span class="product-can-size">${initialSize.label}</span>
-          </div>
         </div>
         <div class="product-info">
           <h3 class="product-name">OXIDUR ${color.name}</h3>
@@ -68,7 +61,7 @@ function renderProducts() {
             <div class="product-price">
               <span class="product-price-currency">$</span><span class="price-value">${initialSize.price.toLocaleString('es-AR')}</span>
             </div>
-            <button class="add-cart" data-color="${color.id}">Agregar</button>
+            <button class="add-cart" data-color="${color.id}">Agregar al carrito</button>
           </div>
         </div>
       </article>
@@ -77,46 +70,6 @@ function renderProducts() {
 
   grid.innerHTML = cards;
   bindProductEvents();
-}
-
-function bindProductEvents() {
-  // Size selector
-  $$('.size-selector').forEach(selector => {
-    selector.querySelectorAll('.size-option').forEach(btn => {
-      btn.addEventListener('click', () => {
-        selector.querySelectorAll('.size-option').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-
-        const card = selector.closest('.product-card');
-        card.querySelector('.price-value').textContent = Number(btn.dataset.price).toLocaleString('es-AR');
-        card.querySelector('.product-can-size').textContent = btn.textContent;
-      });
-    });
-  });
-
-  // Add to cart
-  $$('.add-cart').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const colorId = btn.dataset.color;
-      const card = btn.closest('.product-card');
-      const activeSize = card.querySelector('.size-option.active');
-      if (!activeSize) return;
-
-      const colorObj = COLORS.find(c => c.id === colorId);
-
-      addToCart({
-        productId: 'oxidur',
-        sizeId: activeSize.dataset.size,
-        colorId,
-        name: 'OXIDUR ' + colorObj.name,
-        color: colorObj,
-        size: activeSize.textContent,
-        price: Number(activeSize.dataset.price)
-      });
-
-      showToast(`${colorObj.name} ${activeSize.textContent} agregado`);
-    });
-  });
 }
 
 // ----- CARRITO ---------------------------------------------
