@@ -276,6 +276,7 @@ $('#checkoutBtn').addEventListener('click', () => {
   closeCart();
   $('#checkoutModal').classList.add('open');
 });
+
 $('#ckCancel').addEventListener('click', () => {
   $('#checkoutModal').classList.remove('open');
 });
@@ -303,37 +304,23 @@ $('#mpBtn').addEventListener('click', async () => {
     currency_id: 'ARS'
   }));
 
-  // ===== MODO REAL: descomentá esto cuando tengas el backend listo =====
- 
-  try {
-    const res = await fetch(BACKEND_CREATE_PREFERENCE_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ items, payer: data })
-    });
-    const { init_point } = await res.json();
-    window.location.href = init_point;
-  } catch (err) {
-    showToast('Error al iniciar el pago');
-    console.error(err);
-  }
-  
-
- 
+  // MODO DEMO (por ahora)
+  $('#mpBtn').innerHTML = 'Redirigiendo a MercadoPago...';
+  setTimeout(() => {
+    alert(
+      '✅ DEMO: En producción te redirigiría a MercadoPago.\n\n' +
+      'Total: ' + fmt(cartTotal()) + '\n' +
+      'Productos: ' + cart.length
+    );
+    $('#checkoutModal').classList.remove('open');
+    $('#mpBtn').innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15l-5-5 1.41-1.41L11 14.17l7.59-7.59L20 8l-9 9z"/></svg> Pagar con MercadoPago';
+    
+    // Vaciar carrito después de "compra"
+    cart.length = 0;
+    renderCart();
+  }, 1200);
+});
 
 // ----- INIT ------------------------------------------------
 renderProducts();
 renderCart();
-
-// Smooth scroll para anchors
-$$('a[href^="#"]').forEach(a => {
-  a.addEventListener('click', e => {
-    const href = a.getAttribute('href');
-    if (href === '#' || href.length < 2) return;
-    const target = document.querySelector(href);
-    if (target) {
-      e.preventDefault();
-      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  });
-});
