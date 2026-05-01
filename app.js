@@ -87,36 +87,58 @@ function addToCart(item) {
   openCart();   // ← Abre automáticamente el carrito al agregar
 }
 
-function renderCart() {
-  const body = $('#cartBody');
-  $('#cartCount').textContent = cart.reduce((sum, i) => sum + i.qty, 0);
-  $('#cartTotal').textContent = fmt(cart.reduce((sum, i) => sum + i.price * i.qty, 0));
-  $('#checkoutBtn').disabled = cart.length === 0;
+function renderProducts() {
+  const grid = $('#productsGrid');
+  
+  grid.innerHTML = COLORS.map(color => {
+    const product = PRODUCTS[0];
+    const initialSize = product.sizes[0];
 
-  if (cart.length === 0) {
-    body.innerHTML = `
-      <div class="cart-empty">
-        <p>Tu carrito está vacío</p>
-      </div>`;
-    return;
-  }
-
-  body.innerHTML = cart.map(item => `
-    <div class="cart-item">
-      <div class="cart-item-info">
-        <div>${item.name} - ${item.size}</div>
-        <div class="cart-item-controls">
-          <button class="qty-btn" data-action="dec" data-key="${item.key}">−</button>
-          <span>${item.qty}</span>
-          <button class="qty-btn" data-action="inc" data-key="${item.key}">+</button>
+    return `
+      <article class="product-card" data-color="${color.id}">
+        <!-- LATA PRINCIPAL (única imagen) -->
+        <div class="product-image">
+          <img src="media/Lata OXIDUR.jpeg" alt="Lata OXIDUR ${color.name}" class="main-can">
+          <span class="product-tag">${product.tag}</span>
         </div>
-      </div>
-      <div class="cart-item-right">
-        <div>${fmt(item.price * item.qty)}</div>
-        <button class="cart-item-remove" data-key="${item.key}">Eliminar</button>
-      </div>
-    </div>
-  `).join('');
+
+        <!-- Info y selectores -->
+        <div class="product-info">
+          <h3 class="product-name">OXIDUR ${color.name}</h3>
+          <div class="product-meta">${product.rendimiento}</div>
+
+          <!-- Colores (pequeños) -->
+          <div class="color-options">
+            ${COLORS.map(c => `
+              <div class="color-dot ${c.id === color.id ? 'active' : ''}" 
+                   style="background:${c.hex}" 
+                   data-color="${c.id}"></div>
+            `).join('')}
+          </div>
+
+          <!-- Tamaños -->
+          <div class="size-selector">
+            ${product.sizes.map((s, i) => `
+              <button class="size-option ${i === 0 ? 'active' : ''}" 
+                      data-size="${s.id}" 
+                      data-price="${s.price}">${s.label}</button>
+            `).join('')}
+          </div>
+
+          <div class="product-bottom">
+            <div class="product-price">
+              <span class="product-price-currency">$</span>
+              <span class="price-value">${initialSize.price.toLocaleString('es-AR')}</span>
+            </div>
+            <button class="add-cart" data-color="${color.id}">Agregar al carrito</button>
+          </div>
+        </div>
+      </article>
+    `;
+  }).join('');
+
+  bindProductEvents();
+}
 
   // Bind events del carrito
   body.querySelectorAll('[data-action]').forEach(btn => {
