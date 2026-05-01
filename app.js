@@ -2,7 +2,7 @@
 // OXIDUR · Tienda online
 // ===========================================================
 
-const MERCADOPAGO_PUBLIC_KEY = 'APP_USR-XXXXXXXXXXXX'; // ← Cambia después por la real
+const MERCADOPAGO_PUBLIC_KEY = 'APP_USR-0ad749c3-db9e-4f56-9d04-f0dd384ba42e'; // ← Cambia después por la real
 const BACKEND_CREATE_PREFERENCE_URL = '/api/create-preference';
 
 // ----- CATÁLOGO ---------------------------------------------
@@ -12,8 +12,8 @@ const PRODUCTS = [
     name: 'OXIDUR',
     description: 'Esmalte antioxidante de base acuosa',
     sizes: [
-      { id: '1l', label: '1 LITRO', price: 8500 },
-      { id: '4l', label: '4 LITROS', price: 28900 }
+      { id: '1l', label: '1 LITRO', price: 55000 },
+      { id: '4l', label: '4 LITROS', price: 199000 }
     ],
     rendimiento: 'Rinde hasta 10 m² por litro',
     tag: 'MÁS VENDIDO'
