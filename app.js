@@ -304,21 +304,45 @@ $('#mpBtn').addEventListener('click', async () => {
     currency_id: 'ARS'
   }));
 
-  // MODO DEMO (por ahora)
-  $('#mpBtn').innerHTML = 'Redirigiendo a MercadoPago...';
-  setTimeout(() => {
-    alert(
-      '✅ DEMO: En producción te redirigiría a MercadoPago.\n\n' +
-      'Total: ' + fmt(cartTotal()) + '\n' +
-      'Productos: ' + cart.length
-    );
-    $('#checkoutModal').classList.remove('open');
-    $('#mpBtn').innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15l-5-5 1.41-1.41L11 14.17l7.59-7.59L20 8l-9 9z"/></svg> Pagar con MercadoPago';
-    
-    // Vaciar carrito después de "compra"
-    cart.length = 0;
-    renderCart();
-  }, 1200);
+$('#mpBtn').addEventListener('click', async () => {
+  const data = {
+    name: $('#ckName').value.trim(),
+    email: $('#ckEmail').value.trim(),
+    phone: $('#ckPhone').value.trim(),
+    dni: $('#ckDni').value.trim(),
+    address: $('#ckAddr').value.trim(),
+    city: $('#ckCity').value.trim(),
+    cp: $('#ckCp').value.trim()
+  };
+
+  if (!data.name || !data.email || !data.address) {
+    showToast('Completá los datos requeridos');
+    return;
+  }
+
+  const items = cart.map(i => ({
+    title: `${i.name} - ${i.size}`,
+    quantity: i.qty,
+    unit_price: i.price,
+    currency_id: 'ARS'
+  }));
+
+  try {
+    const res = await fetch(BACKEND_CREATE_PREFERENCE_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items, payer: data })
+    });
+
+    if (!res.ok) throw new Error('Error del servidor');
+
+    const { init_point } = await res.json();
+    window.location.href = init_point;   // Redirige al checkout real
+
+  } catch (err) {
+    console.error(err);
+    showToast('Error al iniciar el pago. Intentalo nuevamente.');
+  }
 });
 
 // ----- INIT ------------------------------------------------

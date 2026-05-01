@@ -25,7 +25,7 @@ app.use(express.static('.')); // sirve el frontend
 const MP_ACCESS_TOKEN = 'APP_USR-3928310919354671-043022-0e5e8ce01f6fea12c09fe9a17324ae78-246366612';
 
 // URL pública de tu sitio (cambiala cuando subas a producción)
-const SITE_URL = 'http://localhost:3000';
+const SITE_URL = 'https://tiendaoxidur.com';
 
 const mpClient = new MercadoPagoConfig({ accessToken: MP_ACCESS_TOKEN });
 
