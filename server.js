@@ -295,9 +295,24 @@ async function crearEnvio({ payer, items, orderRef }) {
         carrier: shipment.carrier
       };
     } else {
-      return { ok: false, error: data.message || 'Respuesta inesperada de Envia', raw: data };
+      // Logueamos la respuesta completa para diagnosticar
+      console.error('Respuesta inesperada de Envia:');
+      console.error(JSON.stringify(data, null, 2));
+      return {
+        ok: false,
+        error: data.message || data.error || 'Respuesta inesperada de Envia',
+        raw: data
+      };
     }
   } catch (err) {
+    // Logueamos el detalle completo del error
+    console.error('Error en llamada a Envia:');
+    if (err.response) {
+      console.error('Status:', err.response.status);
+      console.error('Body:', JSON.stringify(err.response.data, null, 2));
+    } else {
+      console.error('Mensaje:', err.message);
+    }
     return {
       ok: false,
       error: err.response?.data?.message || err.message,
