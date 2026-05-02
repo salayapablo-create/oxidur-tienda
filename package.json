@@ -1,17 +1,20 @@
 {
   "name": "oxidur-store",
   "version": "1.0.0",
-  "description": "Tienda OXIDUR",
+  "description": "Tienda online OXIDUR con MercadoPago + Envia.com",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
-  },
-  "dependencies": {
-    "express": "^4.19.2",
-    "cors": "^2.8.5",
-    "mercadopago": "^2.0.0"
+    "start": "node server.js",
+    "dev": "node server.js"
   },
   "engines": {
-    "node": "18.x"
+    "node": ">=18"
+  },
+  "dependencies": {
+    "axios": "^1.7.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "mercadopago": "^2.0.15"
   }
 }

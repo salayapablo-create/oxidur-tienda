@@ -331,43 +331,39 @@ $('#mpBtn').addEventListener('click', async () => {
     return;
   }
 
+  // Mandamos sizeId para que el backend sepa si es 1L o 4L (peso/dimensiones)
   const items = cart.map(i => ({
     title: `${i.name} - ${i.size}`,
     quantity: i.qty,
     unit_price: i.price,
-    currency_id: 'ARS'
+    currency_id: 'ARS',
+    sizeId: i.sizeId,
+    colorId: i.colorId
   }));
 
-  // ===== MODO REAL: descomentá esto cuando tengas el backend listo =====
-  /*
+  $('#mpBtn').disabled = true;
+  $('#mpBtn').innerHTML = 'Redirigiendo a MercadoPago...';
+
   try {
     const res = await fetch(BACKEND_CREATE_PREFERENCE_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ items, payer: data })
     });
+
+    if (!res.ok) throw new Error('Backend no respondió OK');
+
     const { init_point } = await res.json();
+    if (!init_point) throw new Error('No se recibió URL de pago');
+
+    // Redirigir al checkout de MercadoPago
     window.location.href = init_point;
   } catch (err) {
-    showToast('Error al iniciar el pago');
-    console.error(err);
-  }
-  */
-
-  // ===== MODO DEMO =====
-  $('#mpBtn').innerHTML = 'Redirigiendo a MercadoPago...';
-  setTimeout(() => {
-    alert(
-      '✅ DEMO: En producción, acá te redirigiría al checkout de MercadoPago.\n\n' +
-      'Resumen del pedido:\n' +
-      cart.map(i => `• ${i.name} (${i.size}) x${i.qty} = ${fmt(i.price * i.qty)}`).join('\n') +
-      `\n\nTotal: ${fmt(cartTotal())}\n\nPara: ${data.name}\n${data.address}, ${data.city} (${data.cp})`
-    );
-    $('#checkoutModal').classList.remove('open');
+    console.error('Error al iniciar pago:', err);
+    showToast('Error al iniciar el pago. Probá de nuevo.');
+    $('#mpBtn').disabled = false;
     $('#mpBtn').innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15l-5-5 1.41-1.41L11 14.17l7.59-7.59L20 8l-9 9z"/></svg> Pagar con MercadoPago';
-    cart.length = 0;
-    renderCart();
-  }, 1500);
+  }
 });
 
 // ----- INIT ------------------------------------------------
