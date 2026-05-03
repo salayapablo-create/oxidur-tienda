@@ -5,7 +5,7 @@
 // ----- CONFIGURACIÓN DE WHATSAPP ------------------------
 // Pegá tu número con código de país sin "+", sin espacios ni guiones.
 // Ejemplo Argentina: 5491123456789  (54 = país, 9 = celular, 11 = área, número)
-const WHATSAPP_NUMBER = '5491123456789'; // ← REEMPLAZAR con tu número
+const WHATSAPP_NUMBER = '5491158533291'; // ← REEMPLAZAR con tu número
 const WHATSAPP_MESSAGE = 'Hola! Quiero hacer una consulta sobre OXIDUR';
 
 // ----- CONFIGURACIÓN DE MERCADOPAGO ---------------------
