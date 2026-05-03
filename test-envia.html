@@ -456,8 +456,11 @@ $('generateBtn').addEventListener('click', async () => {
     } else {
       result.className = 'result show error';
       title.innerHTML = '✕ Falló la generación';
+      const errorMsg = typeof data.error === 'string'
+        ? data.error
+        : (data.error?.message || data.error?.description || JSON.stringify(data.error) || 'Sin detalle');
       body.innerHTML = `
-        <p><strong>Mensaje del error:</strong> ${data.error || 'Sin detalle'}</p>
+        <p><strong>Mensaje del error:</strong> ${errorMsg}</p>
         ${data.raw ? `<p style="margin-top:14px;color:var(--text-dim);font-size:13px">Respuesta completa de Envia:</p>
         <div class="result-data">${JSON.stringify(data.raw, null, 2)}</div>` : ''}
         <p style="margin-top:14px;color:var(--text-dim);font-size:13px">Pasame este detalle para diagnosticar el problema.</p>
