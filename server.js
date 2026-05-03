@@ -265,7 +265,10 @@ async function crearEnvio({ payer, items, orderRef }) {
         service: 'estandar'         // estandar | urgente | sucursal — depende del carrier
       },
       settings: {
-        currency: 'ARS'
+        currency: 'ARS',
+        printFormat: 'PDF',         // PDF | ZPL | PNG — formato de la etiqueta
+        printSize: 'STOCK_4X6',     // tamaño de la etiqueta
+        comments: `Pedido ${orderRef}`
       },
       additionalServices: [],
       sendEmail: true,             // que Envia mande email al cliente con el tracking
