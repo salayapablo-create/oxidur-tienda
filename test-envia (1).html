@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>OXIDUR · Test de envío</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="icon" type="image/svg+xml" href="media/logo.svg">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow+Condensed:wght@400;500;600;700;800&family=Barlow:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #0d0d0f;
+    --bg-2: #15161a;
+    --bg-3: #1d1f24;
+    --border: #2a2c33;
+    --text: #f2f2f0;
+    --text-dim: #9a9b9f;
+    --accent: #ff5b1f;
+    --success: #2ecc71;
+    --error: #e74c3c;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Barlow', system-ui, sans-serif;
+    line-height: 1.5;
+    min-height: 100vh;
+    padding: 32px 16px;
+  }
+  .wrap {
+    max-width: 720px;
+    margin: 0 auto;
+  }
+  .header {
+    text-align: center;
+    margin-bottom: 32px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid var(--border);
+  }
+  .header .badge {
+    display: inline-block;
+    background: var(--accent);
+    color: #0d0d0f;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    padding: 5px 12px;
+    margin-bottom: 14px;
+  }
+  .header h1 {
+    font-family: 'Anton', sans-serif;
+    font-size: 44px;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    margin-bottom: 8px;
+  }
+  .header p {
+    color: var(--text-dim);
+    font-size: 15px;
+    max-width: 540px;
+    margin: 0 auto;
+  }
+
+  .card {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    padding: 28px;
+    margin-bottom: 20px;
+  }
+  .card h2 {
+    font-family: 'Anton', sans-serif;
+    font-size: 22px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 18px;
+    color: var(--text);
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .grid-1 { grid-column: 1 / -1; }
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .field label {
+    font-family: 'Barlow Condensed', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-size: 11px;
+    color: var(--text-dim);
+    font-weight: 600;
+  }
+  .field input, .field select {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    padding: 11px 14px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 15px;
+    transition: border-color .2s;
+  }
+  .field input:focus, .field select:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  .item-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 80px;
+    gap: 12px;
+    align-items: end;
+  }
+
+  .actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 8px;
+  }
+  .btn {
+    flex: 1;
+    padding: 16px 20px;
+    font-family: 'Anton', sans-serif;
+    font-size: 18px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    border: none;
+    transition: all .2s;
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: #0d0d0f;
+  }
+  .btn-primary:hover:not(:disabled) {
+    background: var(--text);
+  }
+  .btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .btn-secondary {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .result {
+    margin-top: 20px;
+    border: 1px solid var(--border);
+    padding: 24px;
+    display: none;
+  }
+  .result.show { display: block; }
+  .result.success { border-color: var(--success); background: rgba(46,204,113,0.05); }
+  .result.error { border-color: var(--error); background: rgba(231,76,60,0.05); }
+
+  .result h3 {
+    font-family: 'Anton', sans-serif;
+    font-size: 22px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .result.success h3 { color: var(--success); }
+  .result.error h3 { color: var(--error); }
+  .result-data {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    padding: 14px;
+    margin-top: 12px;
+    overflow-x: auto;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    color: var(--text-dim);
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 400px;
+    overflow-y: auto;
+  }
+  .result-tracking {
+    background: var(--bg);
+    border: 1px solid var(--success);
+    padding: 16px;
+    margin: 14px 0;
+  }
+  .result-tracking-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-bottom: 4px;
+  }
+  .result-tracking-value {
+    font-family: 'Anton', sans-serif;
+    font-size: 24px;
+    color: var(--success);
+    word-break: break-all;
+  }
+  .label-link {
+    display: inline-block;
+    margin-top: 10px;
+    color: var(--accent);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-size: 14px;
+  }
+  .warning-box {
+    background: rgba(255,182,39,0.1);
+    border: 1px solid #ffb627;
+    color: #ffb627;
+    padding: 14px;
+    margin-top: 16px;
+    font-size: 14px;
+  }
+  .warning-box strong { color: #fff; }
+
+  .loading {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-dim);
+  }
+  .spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--text-dim);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin .8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .back-link {
+    display: inline-block;
+    margin-top: 24px;
+    color: var(--text-dim);
+    font-family: 'Barlow Condensed', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-size: 13px;
+    text-decoration: none;
+  }
+  .back-link:hover { color: var(--accent); }
+
+  @media (max-width: 600px) {
+    .grid { grid-template-columns: 1fr; }
+    .item-row { grid-template-columns: 1fr; }
+    .actions { flex-direction: column; }
+    .header h1 { font-size: 32px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="header">
+    <span class="badge">Modo prueba · sin pago</span>
+    <h1>Test de envío</h1>
+    <p>Generá una guía de prueba en Envia.com sin pasar por MercadoPago. Útil para verificar que la integración con Envia funciona correctamente.</p>
+  </div>
+
+  <div class="card">
+    <h2>Datos del destinatario</h2>
+    <div class="grid">
+      <div class="field grid-1">
+        <label>Nombre completo</label>
+        <input type="text" id="name" value="Pablo Test">
+      </div>
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="email" value="microfloor1@hotmail.com">
+      </div>
+      <div class="field">
+        <label>Teléfono</label>
+        <input type="tel" id="phone" value="1158533291">
+      </div>
+      <div class="field grid-1">
+        <label>Dirección</label>
+        <input type="text" id="address" value="Av. Corrientes 1234">
+      </div>
+      <div class="field">
+        <label>Ciudad</label>
+        <input type="text" id="city" value="CABA">
+      </div>
+      <div class="field">
+        <label>Código postal</label>
+        <input type="text" id="cp" value="1414">
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Producto de prueba</h2>
+    <div class="item-row">
+      <div class="field">
+        <label>Producto</label>
+        <select id="product">
+          <option value="OXIDUR Negro - 1 LITRO">OXIDUR Negro - 1 LITRO</option>
+          <option value="OXIDUR Blanco - 1 LITRO">OXIDUR Blanco - 1 LITRO</option>
+          <option value="OXIDUR Rojo - 1 LITRO">OXIDUR Rojo - 1 LITRO</option>
+          <option value="OXIDUR Verde - 1 LITRO">OXIDUR Verde - 1 LITRO</option>
+          <option value="OXIDUR Negro - 4 LITROS">OXIDUR Negro - 4 LITROS</option>
+          <option value="OXIDUR Rojo - 4 LITROS">OXIDUR Rojo - 4 LITROS</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Precio (informativo)</label>
+        <input type="number" id="price" value="8500">
+      </div>
+      <div class="field">
+        <label>Cantidad</label>
+        <input type="number" id="qty" value="1" min="1" max="10">
+      </div>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="btn btn-primary" id="generateBtn">Generar guía de prueba</button>
+    <button class="btn btn-secondary" id="resetBtn">Restablecer datos</button>
+  </div>
+
+  <div class="warning-box">
+    <strong>⚠ Atención:</strong> en modo producción, esta prueba genera una guía REAL en tu cuenta de Envia.com y puede tener costo. Cancelala desde el panel de Envia → Mis envíos dentro de las 24 horas si era solo prueba.
+  </div>
+
+  <div class="result" id="result">
+    <h3 id="resultTitle"></h3>
+    <div id="resultBody"></div>
+  </div>
+
+  <a href="/" class="back-link">← Volver a la tienda</a>
+
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+
+const defaults = {
+  name: 'Pablo Test',
+  email: 'microfloor1@hotmail.com',
+  phone: '1158533291',
+  address: 'Av. Corrientes 1234',
+  city: 'CABA',
+  cp: '1414',
+  product: 'OXIDUR Negro - 1 LITRO',
+  price: 8500,
+  qty: 1
+};
+
+$('resetBtn').addEventListener('click', () => {
+  Object.entries(defaults).forEach(([k, v]) => { if ($(k)) $(k).value = v; });
+  $('result').classList.remove('show');
+});
+
+$('generateBtn').addEventListener('click', async () => {
+  const btn = $('generateBtn');
+  const result = $('result');
+  const title = $('resultTitle');
+  const body = $('resultBody');
+
+  // Validación básica
+  const name = $('name').value.trim();
+  const email = $('email').value.trim();
+  const cp = $('cp').value.trim();
+  if (!name || !email || !cp) {
+    result.className = 'result show error';
+    title.innerHTML = '✕ Faltan datos';
+    body.innerHTML = '<p>Completá al menos nombre, email y código postal.</p>';
+    return;
+  }
+
+  // Loading
+  btn.disabled = true;
+  btn.innerHTML = 'Procesando...';
+  result.className = 'result show';
+  title.innerHTML = '<span class="spinner"></span> Generando guía...';
+  body.innerHTML = '<p style="color:var(--text-dim)">Esto puede tardar hasta 30 segundos si el servidor estaba dormido.</p>';
+
+  const payload = {
+    payer: {
+      name,
+      email,
+      phone: $('phone').value.trim(),
+      address: $('address').value.trim(),
+      city: $('city').value.trim(),
+      cp
+    },
+    items: [{
+      title: $('product').value,
+      quantity: parseInt($('qty').value, 10) || 1,
+      unit_price: parseFloat($('price').value) || 0
+    }],
+    orderRef: 'TEST-' + Date.now()
+  };
+
+  try {
+    const res = await fetch('/api/envia/crear', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+
+    if (data.ok) {
+      result.className = 'result show success';
+      title.innerHTML = '✓ Guía generada con éxito';
+      let html = '';
+
+      if (data.tracking) {
+        html += `
+          <div class="result-tracking">
+            <div class="result-tracking-label">Tracking number</div>
+            <div class="result-tracking-value">${data.tracking}</div>
+          </div>
+        `;
+      }
+      if (data.shipmentId) {
+        html += `<p style="color:var(--text-dim);font-size:13px">Shipment ID: ${data.shipmentId}</p>`;
+      }
+      if (data.carrier) {
+        html += `<p style="color:var(--text-dim);font-size:13px">Carrier: ${data.carrier}</p>`;
+      }
+      if (data.labelUrl) {
+        html += `<a href="${data.labelUrl}" target="_blank" class="label-link">📄 Ver etiqueta PDF →</a>`;
+      }
+      html += `
+        <p style="margin-top:16px">Andá a <a href="https://envia.com" target="_blank" style="color:var(--accent)">envia.com → Mis envíos</a> para verla y cancelarla si era solo prueba.</p>
+        <details style="margin-top:14px"><summary style="cursor:pointer;color:var(--text-dim);font-size:13px">Ver respuesta completa</summary>
+        <div class="result-data">${JSON.stringify(data, null, 2)}</div>
+        </details>
+      `;
+      body.innerHTML = html;
+    } else {
+      result.className = 'result show error';
+      title.innerHTML = '✕ Falló la generación';
+      const errorMsg = typeof data.error === 'string'
+        ? data.error
+        : (data.error?.message || data.error?.description || JSON.stringify(data.error) || 'Sin detalle');
+      body.innerHTML = `
+        <p><strong>Mensaje del error:</strong> ${errorMsg}</p>
+        ${data.raw ? `<p style="margin-top:14px;color:var(--text-dim);font-size:13px">Respuesta completa de Envia:</p>
+        <div class="result-data">${JSON.stringify(data.raw, null, 2)}</div>` : ''}
+        <p style="margin-top:14px;color:var(--text-dim);font-size:13px">Pasame este detalle para diagnosticar el problema.</p>
+      `;
+    }
+  } catch (err) {
+    result.className = 'result show error';
+    title.innerHTML = '✕ Error de conexión';
+    body.innerHTML = `<p>${err.message || 'No se pudo conectar al servidor'}</p>`;
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = 'Generar guía de prueba';
+  }
+});
+</script>
+
+</body>
+</html>
