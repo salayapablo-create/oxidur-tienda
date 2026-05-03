@@ -260,7 +260,7 @@ async function crearEnvio({ payer, items, orderRef }) {
       },
       packages,
       shipment: {
-        carrier: 'andreani',       // o 'oca', 'correoargentino' — ver cuál tenés mejor tarifado en Envia
+        carrier: 'oca',             // Andreani / OCA / correoargentino
         type: 1,                    // 1 = paquete estándar
         service: 'estandar'         // estandar | urgente | sucursal — depende del carrier
       },
@@ -373,7 +373,7 @@ app.post('/api/envia/cotizar', async (req, res) => {
         city: destination.city || 'CABA'
       },
       packages,
-      shipment: { carrier: 'andreani', type: 1, service: 'estandar' },
+      shipment: { carrier: 'oca', type: 1, service: 'estandar' },
       settings: { currency: 'ARS' }
     };
 
@@ -398,26 +398,73 @@ app.post('/api/envia/cotizar', async (req, res) => {
 });
 
 /**
- * Endpoint que lista los servicios disponibles para un carrier
- * (para descubrir cuáles tenés habilitados en tu cuenta)
+ * Endpoint que prueba qué carriers/servicios están disponibles
+ * para tu cuenta haciendo una cotización dummy.
+ * Usa esto cuando un carrier falla con "Internal error" para descubrir
+ * cuál te queda mejor.
  */
-app.get('/api/envia/servicios', async (req, res) => {
-  try {
-    const carrier = req.query.carrier || 'andreani';
-    const response = await axios.get(
-      `${ENVIA_BASE_URL}/queries/carriers/${carrier}/AR`,
-      {
-        headers: { 'Authorization': `Bearer ${ENVIA_API_KEY}` },
-        timeout: 15000
-      }
-    );
-    res.json(response.data);
-  } catch (err) {
-    res.status(500).json({
-      error: err.response?.data?.message || err.message,
-      detail: err.response?.data
-    });
+app.get('/api/envia/test-carriers', async (req, res) => {
+  const carriers = ['oca', 'andreani', 'correoargentino', 'cruzdelsur'];
+  const results = {};
+
+  // Cotización dummy: paquete chico de Avellaneda a CABA
+  const basePayload = {
+    origin: {
+      country: 'AR',
+      postalCode: SENDER.postalCode,
+      state: SENDER.state.code,
+      city: SENDER.city,
+      district: SENDER.district
+    },
+    destination: {
+      country: 'AR',
+      postalCode: '1414',
+      state: 'B',
+      city: 'CABA',
+      district: 'CABA'
+    },
+    packages: [{
+      content: 'Test',
+      amount: 1,
+      type: 'box',
+      weight: 1.1,
+      weightUnit: 'KG',
+      lengthUnit: 'CM',
+      dimensions: { length: 12, width: 12, height: 15 },
+      insurance: 0,
+      declaredValue: 8500
+    }],
+    settings: { currency: 'ARS' }
+  };
+
+  for (const carrier of carriers) {
+    try {
+      const r = await axios.post(
+        `${ENVIA_BASE_URL}/ship/rate/`,
+        { ...basePayload, shipment: { carrier, type: 1 } },
+        {
+          headers: {
+            'Authorization': `Bearer ${ENVIA_API_KEY}`,
+            'Content-Type': 'application/json'
+          },
+          timeout: 15000
+        }
+      );
+      results[carrier] = {
+        ok: true,
+        data: r.data
+      };
+    } catch (err) {
+      results[carrier] = {
+        ok: false,
+        status: err.response?.status,
+        error: err.response?.data?.error || err.response?.data?.message || err.message,
+        raw: err.response?.data
+      };
+    }
   }
+
+  res.json(results);
 });
 
 // ============================================================
