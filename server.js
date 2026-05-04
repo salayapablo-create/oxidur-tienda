@@ -278,9 +278,9 @@ async function crearEnvio({ payer, items, orderRef }) {
       },
       packages,
       shipment: {
-        carrier: 'oca',             // Andreani / OCA / correoargentino
-        type: 1,                    // 1 = paquete estándar
-        service: 'estandar'         // estandar | urgente | sucursal — depende del carrier
+        carrier: 'correoargentino',  // forzamos Correo Argentino mientras Envia destraba OCA/Andreani
+        type: 1,                     // 1 = paquete estándar
+        service: 'estandar'          // estandar | sucursal | domicilio — depende del carrier
       },
       settings: {
         currency: 'ARS',
@@ -707,7 +707,7 @@ app.post('/api/envia/cotizar', async (req, res) => {
         city: destination.city || 'CABA'
       },
       packages,
-      shipment: { carrier: 'oca', type: 1, service: 'estandar' },
+      shipment: { carrier: 'correoargentino', type: 1, service: 'estandar' },
       settings: { currency: 'ARS' }
     };
 
@@ -732,16 +732,16 @@ app.post('/api/envia/cotizar', async (req, res) => {
 });
 
 /**
- * Endpoint que prueba qué carriers/servicios están disponibles
- * para tu cuenta haciendo una cotización dummy.
- * Usa esto cuando un carrier falla con "Internal error" para descubrir
- * cuál te queda mejor.
+ * Endpoint de diagnóstico: prueba qué servicios de Correo Argentino
+ * están disponibles para tu cuenta. Útil para ver si el problema es
+ * con un servicio específico ('estandar', 'sucursal', 'domicilio', etc).
  */
 app.get('/api/envia/test-carriers', async (req, res) => {
-  const carriers = ['oca', 'andreani', 'correoargentino', 'cruzdelsur'];
+  // Probamos Correo Argentino con distintos servicios
+  const services = ['estandar', 'sucursal', 'domicilio', 'expreso', 'clasico'];
   const results = {};
 
-  // Cotización dummy: paquete chico de Avellaneda a CABA
+  // Cotización dummy: paquete chico de Gerli a CABA
   const basePayload = {
     origin: {
       country: 'AR',
@@ -771,11 +771,11 @@ app.get('/api/envia/test-carriers', async (req, res) => {
     settings: { currency: 'ARS' }
   };
 
-  for (const carrier of carriers) {
+  for (const service of services) {
     try {
       const r = await axios.post(
         `${ENVIA_BASE_URL}/ship/rate/`,
-        { ...basePayload, shipment: { carrier, type: 1 } },
+        { ...basePayload, shipment: { carrier: 'correoargentino', type: 1, service } },
         {
           headers: {
             'Authorization': `Bearer ${ENVIA_API_KEY}`,
@@ -784,12 +784,12 @@ app.get('/api/envia/test-carriers', async (req, res) => {
           timeout: 15000
         }
       );
-      results[carrier] = {
+      results[`correoargentino:${service}`] = {
         ok: true,
         data: r.data
       };
     } catch (err) {
-      results[carrier] = {
+      results[`correoargentino:${service}`] = {
         ok: false,
         status: err.response?.status,
         error: err.response?.data?.error || err.response?.data?.message || err.message,
