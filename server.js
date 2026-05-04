@@ -153,7 +153,7 @@ async function crearEnvio({ payer, items, orderRef }) {
 
     const payload = {
       origin: {
-        name: SENDER.name || "HIDROSOL SRL",           // ← Forzado
+        name: SENDER.name || "HIDROSOL SRL",
         company: SENDER.company || "HIDROSOL SRL",
         email: SENDER.email,
         phone: SENDER.phone,
@@ -182,7 +182,7 @@ async function crearEnvio({ payer, items, orderRef }) {
       },
       packages,
       shipment: {
-        carrier: "correoargentino",     // el que te recomendaron
+        carrier: "correoargentino",
         type: 1,
         service: "estandar"
       },
@@ -200,8 +200,7 @@ async function crearEnvio({ payer, items, orderRef }) {
       additionalInfo: `Pedido OXIDUR ${orderRef}`
     };
 
-    // === DEBUG: Ver qué se está enviando ===
-    console.log("📤 Payload completo a Envia:");
+    console.log("📤 Payload enviado a Envia:");
     console.log(JSON.stringify(payload, null, 2));
 
     const response = await axios.post(
@@ -229,7 +228,11 @@ async function crearEnvio({ payer, items, orderRef }) {
       };
     } else {
       console.error("Respuesta Envia:", JSON.stringify(data, null, 2));
-      return { ok: false, error: data.message || data.error?.description || 'Error desconocido', raw: data };
+      return { 
+        ok: false, 
+        error: data.error?.description || data.message || 'Error desconocido', 
+        raw: data 
+      };
     }
   } catch (err) {
     console.error("❌ Error Envia:", err.response?.data || err.message);
@@ -241,6 +244,36 @@ async function crearEnvio({ payer, items, orderRef }) {
   }
 }
 
+// ============================================================
+// BUILD PACKAGES (obligatoria)
+// ============================================================
+
+function buildPackages(items) {
+  const packages = [];
+  for (const item of items) {
+    const isFourLiters = /4\s*LITROS?/i.test(item.title);
+    const spec = isFourLiters ? PRODUCT_SPECS['4l'] : PRODUCT_SPECS['1l'];
+
+    for (let i = 0; i < item.quantity; i++) {
+      packages.push({
+        content: spec.name,
+        amount: 1,
+        type: 'box',
+        weight: spec.weight,
+        weightUnit: 'KG',
+        lengthUnit: 'CM',
+        dimensions: {
+          length: spec.length,
+          width: spec.width,
+          height: spec.height
+        },
+        insurance: 0,
+        declaredValue: item.unit_price || 0
+      });
+    }
+  }
+  return packages;
+}
 // ============================================================
 // ENDPOINTS AUXILIARES
 // ============================================================
