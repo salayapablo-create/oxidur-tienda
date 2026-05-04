@@ -163,35 +163,30 @@ async function crearEnvio({ payer, items, orderRef }) {
         city: "Avellaneda",
         state: "B",
         country: "AR",
-        postalCode: "1870",
-        reference: "Entre Ferré y Magán"
+        postalCode: "1870"
       },
       destination: {
         name: payer.name || "Cliente Prueba",
-        company: "",
         email: payer.email,
-        phone: payer.phone || "",
-        street: payer.address || "Av. Corrientes",
+        phone: payer.phone || "1158533291",
+        street: payer.address || "Av. Corrientes 1234",
         number: "1234",
         district: payer.city || "CABA",
         city: payer.city || "CABA",
         state: "B",
         country: "AR",
-        postalCode: payer.cp || "1414",
-        reference: ""
+        postalCode: payer.cp || "1414"
       },
       packages,
       shipment: {
         carrier: "correoargentino",
-        type: 1,
-        service: "estandar"
+        type: 1
       },
       settings: {
         currency: "ARS",
         printFormat: "PDF",
         printSize: "PAPER_4X6"
       },
-      additionalServices: [],
       sendEmail: true,
       additionalInfo: `Pedido OXIDUR ${orderRef}`
     };
