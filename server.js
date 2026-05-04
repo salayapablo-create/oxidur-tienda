@@ -153,26 +153,26 @@ async function crearEnvio({ payer, items, orderRef }) {
 
     const payload = {
       origin: {
-        name: SENDER.name || "HIDROSOL SRL",
-        company: SENDER.company || "HIDROSOL SRL",
-        email: SENDER.email,
-        phone: SENDER.phone,
-        street: SENDER.street,
-        number: SENDER.number,
-        district: SENDER.district,
-        city: SENDER.city,
-        state: SENDER.state.code || "B",
-        country: SENDER.country,
-        postalCode: SENDER.postalCode,
-        reference: SENDER.reference || ""
+        name: "HIDROSOL SRL",
+        company: "HIDROSOL SRL",
+        email: "microfloor1@hotmail.com",
+        phone: "1158533291",
+        street: "Gral. Heredia",
+        number: "2353",
+        district: "Avellaneda",
+        city: "Avellaneda",
+        state: "B",
+        country: "AR",
+        postalCode: "1870",
+        reference: "Entre Ferré y Magán"
       },
       destination: {
-        name: payer.name || "Cliente",
-        company: payer.name || "",
+        name: payer.name || "Cliente Prueba",
+        company: "",
         email: payer.email,
         phone: payer.phone || "",
-        street: payer.address || "",
-        number: "",
+        street: payer.address || "Av. Corrientes",
+        number: "1234",
         district: payer.city || "CABA",
         city: payer.city || "CABA",
         state: "B",
@@ -223,7 +223,6 @@ async function crearEnvio({ payer, items, orderRef }) {
         carrier: shipment.carrier
       };
     } else {
-      console.error("Respuesta Envia:", JSON.stringify(data, null, 2));
       return { 
         ok: false, 
         error: data.error?.description || data.message || 'Error desconocido', 
