@@ -179,9 +179,10 @@ async function crearEnvio({ payer, items, orderRef }) {
       },
       packages,
       shipment: {
-        carrier: "correoargentino",
-        type: 1
-      },
+  carrier: "correoargentino",
+  type: 1,
+  service: "estandar"           // ← probá primero esta
+},
       settings: {
         currency: "ARS",
         printFormat: "PDF",
