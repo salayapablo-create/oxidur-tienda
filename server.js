@@ -737,8 +737,22 @@ app.post('/api/envia/cotizar', async (req, res) => {
  * con un servicio específico ('estandar', 'sucursal', 'domicilio', etc).
  */
 app.get('/api/envia/test-carriers', async (req, res) => {
-  // Probamos Correo Argentino con distintos servicios
-  const services = ['estandar', 'sucursal', 'domicilio', 'expreso', 'clasico'];
+  // Probamos variantes del servicio "Estándar a Domicilio"
+  // que el panel de Envia muestra como única opción disponible
+  const services = [
+    'estandar_domicilio',
+    'estandar-domicilio',
+    'estandar a domicilio',
+    'estandarDomicilio',
+    'estandar',
+    'home',
+    'door_to_door',
+    'estandar_a_domicilio',
+    'st-d',
+    'std',
+    'CORREO_ESTANDAR_DOMICILIO',
+    'PAQUETE_ESTANDAR'
+  ];
   const results = {};
 
   // Cotización dummy: paquete chico de Gerli a CABA
@@ -784,12 +798,12 @@ app.get('/api/envia/test-carriers', async (req, res) => {
           timeout: 15000
         }
       );
-      results[`correoargentino:${service}`] = {
+      results[service] = {
         ok: true,
         data: r.data
       };
     } catch (err) {
-      results[`correoargentino:${service}`] = {
+      results[service] = {
         ok: false,
         status: err.response?.status,
         error: err.response?.data?.error || err.response?.data?.message || err.message,
@@ -799,6 +813,71 @@ app.get('/api/envia/test-carriers', async (req, res) => {
   }
 
   res.json(results);
+});
+
+/**
+ * Endpoint que cotiza SIN especificar servicio.
+ * Envia debería devolver TODOS los carriers/servicios disponibles
+ * para tu cuenta y te muestra los precios de cada uno.
+ */
+app.get('/api/envia/listar-disponibles', async (req, res) => {
+  const carrier = req.query.carrier; // opcional: filtrar por carrier (ej. ?carrier=correoargentino)
+
+  const payload = {
+    origin: {
+      country: 'AR',
+      postalCode: SENDER.postalCode,
+      state: SENDER.state.code,
+      city: SENDER.city,
+      district: SENDER.district
+    },
+    destination: {
+      country: 'AR',
+      postalCode: '1414',
+      state: 'B',
+      city: 'CABA',
+      district: 'CABA'
+    },
+    packages: [{
+      content: 'Test',
+      amount: 1,
+      type: 'box',
+      weight: 1.1,
+      weightUnit: 'KG',
+      lengthUnit: 'CM',
+      dimensions: { length: 12, width: 12, height: 15 },
+      insurance: 0,
+      declaredValue: 8500
+    }],
+    settings: { currency: 'ARS' }
+  };
+
+  // Si se pasa carrier, filtramos. Sino, sin filtro = devuelve todos
+  if (carrier) {
+    payload.shipment = { carrier };
+  }
+
+  try {
+    const r = await axios.post(
+      `${ENVIA_BASE_URL}/ship/rate/`,
+      payload,
+      {
+        headers: {
+          'Authorization': `Bearer ${ENVIA_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 20000
+      }
+    );
+    res.json({ ok: true, data: r.data });
+  } catch (err) {
+    res.json({
+      ok: false,
+      status: err.response?.status,
+      error: err.response?.data?.error || err.response?.data?.message || err.message,
+      raw: err.response?.data
+    });
+  }
 });
 
 // ============================================================
