@@ -152,31 +152,44 @@ async function crearEnvio({ payer, items, orderRef }) {
     const packages = buildPackages(items);
 
     const payload = {
-      origin: { /* ... igual que antes */ },
+      origin: {
+        name: SENDER.name || "HIDROSOL SRL",           // ← Forzado
+        company: SENDER.company || "HIDROSOL SRL",
+        email: SENDER.email,
+        phone: SENDER.phone,
+        street: SENDER.street,
+        number: SENDER.number,
+        district: SENDER.district,
+        city: SENDER.city,
+        state: SENDER.state.code || "B",
+        country: SENDER.country,
+        postalCode: SENDER.postalCode,
+        reference: SENDER.reference || ""
+      },
       destination: {
-        name: payer.name,
-        company: payer.name || '',
+        name: payer.name || "Cliente",
+        company: payer.name || "",
         email: payer.email,
-        phone: payer.phone || '',
-        street: payer.address,
-        number: '',
-        district: payer.city || 'CABA',
-        city: payer.city || 'CABA',
-        state: 'B',
-        country: 'AR',
-        postalCode: payer.cp,
-        reference: ''
+        phone: payer.phone || "",
+        street: payer.address || "",
+        number: "",
+        district: payer.city || "CABA",
+        city: payer.city || "CABA",
+        state: "B",
+        country: "AR",
+        postalCode: payer.cp || "1414",
+        reference: ""
       },
       packages,
       shipment: {
-        carrier: 'correoargentino',   // ← PRINCIPAL CAMBIO
+        carrier: "correoargentino",     // el que te recomendaron
         type: 1,
-        service: 'estandar'
+        service: "estandar"
       },
       settings: {
-        currency: 'ARS',
-        printFormat: 'PDF',
-        printSize: 'PAPER_4X6'
+        currency: "ARS",
+        printFormat: "PDF",
+        printSize: "PAPER_4X6"
       },
       additionalServices: [],
       pickup: {
@@ -187,13 +200,24 @@ async function crearEnvio({ payer, items, orderRef }) {
       additionalInfo: `Pedido OXIDUR ${orderRef}`
     };
 
+    // === DEBUG: Ver qué se está enviando ===
+    console.log("📤 Payload completo a Envia:");
+    console.log(JSON.stringify(payload, null, 2));
+
     const response = await axios.post(
       `${ENVIA_BASE_URL}/ship/generate/`,
       payload,
-      { headers: { 'Authorization': `Bearer ${ENVIA_API_KEY}` }, timeout: 30000 }
+      {
+        headers: {
+          'Authorization': `Bearer ${ENVIA_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 30000
+      }
     );
 
     const data = response.data;
+
     if (data.meta === 'generate' && data.data?.length > 0) {
       const shipment = data.data[0];
       return {
@@ -204,43 +228,17 @@ async function crearEnvio({ payer, items, orderRef }) {
         carrier: shipment.carrier
       };
     } else {
-      return { ok: false, error: data.message || 'Error', raw: data };
+      console.error("Respuesta Envia:", JSON.stringify(data, null, 2));
+      return { ok: false, error: data.message || data.error?.description || 'Error desconocido', raw: data };
     }
   } catch (err) {
-    console.error('Error Envia:', err.response?.data || err.message);
-    return { ok: false, error: err.response?.data?.message || err.message, raw: err.response?.data };
+    console.error("❌ Error Envia:", err.response?.data || err.message);
+    return {
+      ok: false,
+      error: err.response?.data?.error?.description || err.response?.data?.message || err.message,
+      raw: err.response?.data
+    };
   }
-}
-
-// ============================================================
-// BUILD PACKAGES (sin cambios, estaba bien)
-// ============================================================
-
-function buildPackages(items) {
-  const packages = [];
-  for (const item of items) {
-    const isFourLiters = /4\s*LITROS?/i.test(item.title);
-    const spec = isFourLiters ? PRODUCT_SPECS['4l'] : PRODUCT_SPECS['1l'];
-
-    for (let i = 0; i < item.quantity; i++) {
-      packages.push({
-        content: spec.name,
-        amount: 1,
-        type: 'box',
-        weight: spec.weight,
-        weightUnit: 'KG',
-        lengthUnit: 'CM',
-        dimensions: {
-          length: spec.length,
-          width: spec.width,
-          height: spec.height
-        },
-        insurance: 0,
-        declaredValue: item.unit_price
-      });
-    }
-  }
-  return packages;
 }
 
 // ============================================================
