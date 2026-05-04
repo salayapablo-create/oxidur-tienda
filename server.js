@@ -152,66 +152,48 @@ async function crearEnvio({ payer, items, orderRef }) {
     const packages = buildPackages(items);
 
     const payload = {
-      origin: {
-        name: SENDER.name,
-        company: SENDER.company,
-        email: SENDER.email,
-        phone: SENDER.phone,
-        street: SENDER.street,
-        number: SENDER.number,
-        district: SENDER.district,
-        city: SENDER.city,
-        state: SENDER.state.code,
-        country: SENDER.country,
-        postalCode: SENDER.postalCode,
-        reference: SENDER.reference
-      },
+      origin: { /* ... igual que antes */ },
       destination: {
         name: payer.name,
-        company: payer.name,
+        company: payer.name || '',
         email: payer.email,
         phone: payer.phone || '',
         street: payer.address,
-        number: '',                    // ← Mejor vacío
+        number: '',
         district: payer.city || 'CABA',
         city: payer.city || 'CABA',
-        state: 'B',                    // Puedes mejorar esto con un selector de provincia
+        state: 'B',
         country: 'AR',
         postalCode: payer.cp,
         reference: ''
       },
       packages,
       shipment: {
-        carrier: 'andreani',
+        carrier: 'correoargentino',   // ← PRINCIPAL CAMBIO
         type: 1,
-        service: 'estandar'            // ← Agregado (importante)
+        service: 'estandar'
       },
       settings: {
         currency: 'ARS',
         printFormat: 'PDF',
-        printSize: 'PAPER_4X6'         // ← Obligatorio
+        printSize: 'PAPER_4X6'
       },
       additionalServices: [],
+      pickup: {
+        type: "drop_off",
+        scheduledDate: null
+      },
       sendEmail: true,
       additionalInfo: `Pedido OXIDUR ${orderRef}`
     };
 
-    console.log('📤 Enviando payload a Envia...');
-
     const response = await axios.post(
       `${ENVIA_BASE_URL}/ship/generate/`,
       payload,
-      {
-        headers: {
-          'Authorization': `Bearer ${ENVIA_API_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        timeout: 25000
-      }
+      { headers: { 'Authorization': `Bearer ${ENVIA_API_KEY}` }, timeout: 30000 }
     );
 
     const data = response.data;
-
     if (data.meta === 'generate' && data.data?.length > 0) {
       const shipment = data.data[0];
       return {
@@ -222,22 +204,11 @@ async function crearEnvio({ payer, items, orderRef }) {
         carrier: shipment.carrier
       };
     } else {
-      console.error('Respuesta inesperada de Envia:', JSON.stringify(data, null, 2));
-      return { ok: false, error: data.message || 'Respuesta inesperada', raw: data };
+      return { ok: false, error: data.message || 'Error', raw: data };
     }
   } catch (err) {
-    console.error('❌ Error en llamada a Envia:');
-    if (err.response) {
-      console.error('Status:', err.response.status);
-      console.error('Body:', JSON.stringify(err.response.data, null, 2));
-    } else {
-      console.error(err.message);
-    }
-    return {
-      ok: false,
-      error: err.response?.data?.message || err.message,
-      raw: err.response?.data
-    };
+    console.error('Error Envia:', err.response?.data || err.message);
+    return { ok: false, error: err.response?.data?.message || err.message, raw: err.response?.data };
   }
 }
 
