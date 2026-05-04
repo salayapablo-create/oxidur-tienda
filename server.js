@@ -285,23 +285,35 @@ app.post('/api/envia/cotizar', async (req, res) => {
         city: SENDER.city
       },
       destination: {
-        country: 'AR',
+        country: "AR",
         postalCode: destination.cp,
-        state: destination.state || 'B',
-        city: destination.city || 'CABA'
+        state: "B",
+        city: destination.city || "CABA"
       },
       packages,
-      shipment: { carrier: 'andreani', type: 1 },
-      settings: { currency: 'ARS' }
+      shipment: { 
+        carrier: "correoargentino", 
+        type: 1 
+      },
+      settings: { currency: "ARS" }
     };
 
-    const response = await axios.post(`${ENVIA_BASE_URL}/ship/rate/`, payload, {
-      headers: { 'Authorization': `Bearer ${ENVIA_API_KEY}` }
-    });
+    const response = await axios.post(
+      `${ENVIA_BASE_URL}/ship/rate/`,
+      payload,
+      {
+        headers: { 'Authorization': `Bearer ${ENVIA_API_KEY}` },
+        timeout: 20000
+      }
+    );
 
     res.json(response.data);
   } catch (err) {
-    res.status(500).json({ error: err.response?.data?.message || err.message });
+    console.error("Error en cotizar:", err.response?.data || err.message);
+    res.status(500).json({ 
+      error: err.response?.data?.message || err.message,
+      raw: err.response?.data 
+    });
   }
 });
 
