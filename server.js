@@ -323,7 +323,26 @@ app.get('/api/health', (req, res) => {
     enviaMode: ENVIA_MODE
   });
 });
-
+// === TEST DE AUTENTICACIÓN ENVIA ===
+app.get('/api/envia/test-auth', async (req, res) => {
+  try {
+    const response = await axios.get(`${ENVIA_BASE_URL}/ship/rate/`, {
+      headers: {
+        'Authorization': `Bearer ${ENVIA_API_KEY}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    res.json({ ok: true, message: "✅ Auth OK" });
+  } catch (err) {
+    res.status(401).json({
+      ok: false,
+      status: err.response?.status,
+      error: err.response?.data || err.message,
+      baseUrl: ENVIA_BASE_URL,
+      keyLength: ENVIA_API_KEY?.length
+    });
+  }
+});
 // ============================================================
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
