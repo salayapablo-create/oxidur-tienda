@@ -67,11 +67,11 @@ const SENDER = {
   phone: '1158533291',
   street: 'Gral. Heredia',
   number: '2353',
-  district: 'Avellaneda',
+  district: 'Gerli',
   city: 'Avellaneda',
   state: { name: 'Buenos Aires', code: 'B' },
   country: 'AR',
-  postalCode: '1870',
+  postalCode: '1869',
   reference: 'Entre Ferré y Magán'
 };
 
