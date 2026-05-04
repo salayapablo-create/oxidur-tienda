@@ -192,10 +192,6 @@ async function crearEnvio({ payer, items, orderRef }) {
         printSize: "PAPER_4X6"
       },
       additionalServices: [],
-      pickup: {
-        type: "drop_off",
-        scheduledDate: null
-      },
       sendEmail: true,
       additionalInfo: `Pedido OXIDUR ${orderRef}`
     };
@@ -243,7 +239,6 @@ async function crearEnvio({ payer, items, orderRef }) {
     };
   }
 }
-
 // ============================================================
 // BUILD PACKAGES (obligatoria)
 // ============================================================
