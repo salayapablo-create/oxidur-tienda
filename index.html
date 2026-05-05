@@ -2665,12 +2665,12 @@
     </div>
   </div>
 </div>
-     <!-- ==================== META PIXEL EVENTS - VERSIÓN FINAL ==================== -->
+      <!-- ==================== META PIXEL EVENTS - VERSIÓN ULTRA ==================== -->
     <script>
-        console.log("✅ Meta Pixel Events vFINAL cargados");
+        console.log("✅ Meta Pixel Events ULTRA cargados");
 
         // ViewContent
-        window.addEventListener('load', function() {
+        window.addEventListener('load', () => {
             setTimeout(() => {
                 fbq('track', 'ViewContent', {
                     content_ids: ['oxidur-negro'],
@@ -2683,38 +2683,37 @@
         });
 
         // AddToCart
-        document.addEventListener('click', function(e) {
-            const text = (e.target.textContent || e.target.innerText || '').trim().toUpperCase();
+        document.addEventListener('click', (e) => {
+            const text = (e.target.textContent || '').trim().toUpperCase();
             if (text.includes("AGREGAR AL CARRITO")) {
-                fbq('track', 'AddToCart', {
-                    content_ids: ['oxidur-negro'],
-                    content_type: 'product',
-                    content_name: 'OXIDUR',
-                    value: 8500,
-                    currency: 'ARS',
-                    num_items: 1
-                });
+                fbq('track', 'AddToCart', { content_ids: ['oxidur-negro'], content_type: 'product', value: 8500, currency: 'ARS' });
                 console.log("🛒 AddToCart OK");
             }
         });
 
-        // InitiateCheckout - Versión ultra sensible
-        document.addEventListener('click', function(e) {
+        // InitiateCheckout - Versión máxima
+        document.addEventListener('click', (e) => {
             const text = (e.target.textContent || e.target.innerText || '').trim().toUpperCase();
-            const button = e.target.closest('button');
-            
+            const btn = e.target.closest('button');
+
             if (text.includes("PAGAR CON MERCADOPAGO") || 
-                text.includes("FINALIZAR COMPRA") || 
-                text.includes("PAGAR") ||
-                (button && button.textContent.toUpperCase().includes("PAGAR"))) {
+                text.includes("PAGAR") || 
+                text.includes("FINALIZAR") ||
+                (btn && btn.textContent.toUpperCase().includes("PAGAR"))) {
                 
                 fbq('track', 'InitiateCheckout', {
                     value: 8500,
                     currency: 'ARS',
-                    num_items: 1,
-                    contents: [{id: 'oxidur-negro', quantity: 1}]
+                    num_items: 1
                 });
-                console.log("💳 InitiateCheckout DISPARADO");
+                console.log("💳 InitiateCheckout DISPARADO EXITOSAMENTE");
+            }
+        });
+
+        // Debug: Mostrar en consola cualquier clic en botón azul
+        document.addEventListener('click', (e) => {
+            if (e.target.tagName === "BUTTON" || e.target.closest('button')) {
+                console.log("🔘 Botón clickeado:", e.target.textContent.trim());
             }
         });
     </script>
