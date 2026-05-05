@@ -2665,9 +2665,9 @@
     </div>
   </div>
 </div>
-      <!-- ==================== META PIXEL EVENTS - VERSIÓN DEFINITIVA ==================== -->
+      <!-- ==================== META PIXEL EVENTS - VERSIÓN FINAL (RECOMENDADA) ==================== -->
     <script>
-        console.log("✅ Meta Pixel Events DEFINITIVA cargados");
+        console.log("✅ Meta Pixel Events FINAL cargados");
 
         // ViewContent
         window.addEventListener('load', () => {
@@ -2696,19 +2696,16 @@
             }
         });
 
-        // InitiateCheckout - Con delay para que llegue antes de la redirección
+        // InitiateCheckout - Disparamos cuando se hace clic en el botón del carrito (antes del modal)
         document.addEventListener('click', (e) => {
             const text = (e.target.textContent || e.target.innerText || '').trim().toUpperCase();
-            if (text.includes("PAGAR CON MERCADOPAGO") || text.includes("PAGAR")) {
-                
-                // Disparamos el evento inmediatamente
+            if (text.includes("FINALIZAR COMPRA") || text.includes("CHECKOUT")) {
                 fbq('track', 'InitiateCheckout', {
                     value: 8500,
                     currency: 'ARS',
                     num_items: 1
                 });
-                
-                console.log("💳 InitiateCheckout disparado ANTES de redirección");
+                console.log("💳 InitiateCheckout disparado desde el carrito");
             }
         });
     </script>
