@@ -2665,68 +2665,54 @@
     </div>
   </div>
 </div>
-<!-- ==================== META PIXEL EVENTS ==================== -->
-    <script>
-    // Evento ViewContent cuando se ve el producto principal
-    function trackViewContent() {
-        fbq('track', 'ViewContent', {
-            content_ids: ['oxidur-negro'],
-            content_type: 'product',
-            content_name: 'OXIDUR Negro',
-            value: 8500,
-            currency: 'ARS'
-        });
-    }
+<!-- ==================== META PIXEL EVENTS (Versión Mejorada) ==================== -->
+<script>
+    // PageView ya se dispara solo
 
-    // Evento AddToCart
-    function trackAddToCart(productName, price, quantity = 1) {
-        fbq('track', 'AddToCart', {
-            content_ids: ['oxidur-negro'],
-            content_type: 'product',
-            content_name: productName,
-            value: price * quantity,
-            currency: 'ARS',
-            num_items: quantity
-        });
-    }
-
-    // Evento InitiateCheckout
-    function trackInitiateCheckout(total) {
-        fbq('track', 'InitiateCheckout', {
-            value: total,
-            currency: 'ARS',
-            num_items: 1
-        });
-    }
-
-    // Ejecutar ViewContent cuando cargue la página
+    // ViewContent al cargar la página
     window.addEventListener('load', function() {
-        setTimeout(trackViewContent, 800); // pequeño delay para que cargue bien
+        setTimeout(() => {
+            fbq('track', 'ViewContent', {
+                content_ids: ['oxidur-negro'],
+                content_type: 'product',
+                content_name: 'OXIDUR Negro',
+                value: 8500,
+                currency: 'ARS'
+            });
+        }, 1500);
     });
 
-    // === INTEGRACIÓN CON TU BOTÓN DE AGREGAR AL CARRITO ===
-    // Este código se ejecuta después de que cargue app.js
-    document.addEventListener('DOMContentLoaded', function() {
-        const addCartBtn = document.getElementById('addCartBtn');
-        if (addCartBtn) {
-            addCartBtn.addEventListener('click', function() {
-                const qty = parseInt(document.getElementById('qtyNum').textContent) || 1;
-                const price = 8500; // Cambia si usas precios variables
-                trackAddToCart('OXIDUR Negro', price, qty);
-            });
-        }
-
-        // Checkout
-        const checkoutBtn = document.getElementById('checkoutBtn');
-        if (checkoutBtn) {
-            checkoutBtn.addEventListener('click', function() {
-                const total = parseFloat(document.getElementById('cartTotal').textContent.replace(/[$.]/g, '')) || 0;
-                if (total > 0) trackInitiateCheckout(total);
+    // Detectar clic en cualquier botón de "Agregar al carrito"
+    document.addEventListener('click', function(e) {
+        if (e.target.textContent.includes('Agregar al carrito') || 
+            e.target.closest('button') && e.target.closest('button').textContent.includes('Agregar')) {
+            
+            fbq('track', 'AddToCart', {
+                content_ids: ['oxidur-negro'],
+                content_type: 'product',
+                content_name: 'OXIDUR',
+                value: 8500,
+                currency: 'ARS',
+                num_items: 1
             });
         }
     });
-    </script>
-    <!-- ================================================== -->
+
+    // Detectar clic en Finalizar compra / Checkout
+    document.addEventListener('click', function(e) {
+        if (e.target.textContent.includes('Finalizar compra') || 
+            e.target.textContent.includes('Pagar') || 
+            e.target.id === 'checkoutBtn') {
+            
+            fbq('track', 'InitiateCheckout', {
+                value: 8500,
+                currency: 'ARS',
+                num_items: 1
+            });
+        }
+    });
+
+<!-- ================================================== -->
 <script src="app.js"></script>
 </body>
 </html>
