@@ -2665,11 +2665,11 @@
     </div>
   </div>
 </div>
-<!-- ==================== META PIXEL EVENTS - VERSIÓN ACTUALIZADA ==================== -->
+    <!-- ==================== META PIXEL EVENTS - VERSIÓN ACTUALIZADA ==================== -->
     <script>
-        console.log("✅ Meta Pixel Events cargados correctamente");
+        console.log("✅ Meta Pixel Events v2 cargados");
 
-        // ViewContent (se dispara al cargar la página)
+        // ViewContent
         window.addEventListener('load', function() {
             setTimeout(() => {
                 fbq('track', 'ViewContent', {
@@ -2679,15 +2679,13 @@
                     value: 8500,
                     currency: 'ARS'
                 });
-                console.log("📸 ViewContent disparado");
-            }, 1500);
+            }, 1000);
         });
 
-        // AddToCart - Detecta clic en botones que contengan "Agregar"
+        // AddToCart (ya funciona)
         document.addEventListener('click', function(e) {
-            const btnText = (e.target.textContent || e.target.innerText || '').trim();
-            if (btnText.includes("Agregar al carrito") || btnText.includes("carrito")) {
-                console.log("🛒 AddToCart disparado");
+            const text = (e.target.textContent || '').trim();
+            if (text.includes("AGREGAR AL CARRITO") || text.includes("Agregar al carrito")) {
                 fbq('track', 'AddToCart', {
                     content_ids: ['oxidur-negro'],
                     content_type: 'product',
@@ -2699,24 +2697,25 @@
             }
         });
 
-        // InitiateCheckout
+        // InitiateCheckout (mejorado)
         document.addEventListener('click', function(e) {
-            const btnText = (e.target.textContent || e.target.innerText || '').trim();
-            if (btnText.includes("Finalizar compra") || 
-                btnText.includes("Pagar") || 
-                btnText.includes("checkout") || 
-                e.target.id === "checkoutBtn") {
+            const text = (e.target.textContent || '').trim();
+            if (text.includes("Finalizar compra") || 
+                text.includes("Pagar") || 
+                text.includes("checkout") || 
+                e.target.closest('button')?.textContent.includes("Finalizar")) {
                 
-                console.log("💳 InitiateCheckout disparado");
                 fbq('track', 'InitiateCheckout', {
                     value: 8500,
                     currency: 'ARS',
                     num_items: 1
                 });
+                console.log("💳 InitiateCheckout disparado");
             }
         });
     </script>
     <!-- ================================================== -->
-<script src="app.js"></script>
+
+    <script src="app.js"></script>
 </body>
 </html>
