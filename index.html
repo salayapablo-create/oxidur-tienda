@@ -2665,9 +2665,9 @@
     </div>
   </div>
 </div>
-       <!-- ==================== META PIXEL EVENTS - VERSIÓN 3 (MEJORADA) ==================== -->
+     <!-- ==================== META PIXEL EVENTS - VERSIÓN FINAL ==================== -->
     <script>
-        console.log("✅ Meta Pixel Events v3 cargados");
+        console.log("✅ Meta Pixel Events vFINAL cargados");
 
         // ViewContent
         window.addEventListener('load', function() {
@@ -2679,13 +2679,13 @@
                     value: 8500,
                     currency: 'ARS'
                 });
-            }, 1000);
+            }, 800);
         });
 
         // AddToCart
         document.addEventListener('click', function(e) {
-            const text = (e.target.textContent || '').trim();
-            if (text.includes("AGREGAR AL CARRITO") || text.includes("Agregar al carrito")) {
+            const text = (e.target.textContent || e.target.innerText || '').trim().toUpperCase();
+            if (text.includes("AGREGAR AL CARRITO")) {
                 fbq('track', 'AddToCart', {
                     content_ids: ['oxidur-negro'],
                     content_type: 'product',
@@ -2694,17 +2694,19 @@
                     currency: 'ARS',
                     num_items: 1
                 });
+                console.log("🛒 AddToCart OK");
             }
         });
 
-        // InitiateCheckout - Versión más fuerte
+        // InitiateCheckout - Versión ultra sensible
         document.addEventListener('click', function(e) {
-            const text = (e.target.textContent || '').trim();
+            const text = (e.target.textContent || e.target.innerText || '').trim().toUpperCase();
+            const button = e.target.closest('button');
+            
             if (text.includes("PAGAR CON MERCADOPAGO") || 
-                text.includes("Finalizar compra") || 
-                text.includes("Pagar") || 
-                e.target.id.includes("checkout") ||
-                e.target.closest('button')?.textContent.includes("PAGAR")) {
+                text.includes("FINALIZAR COMPRA") || 
+                text.includes("PAGAR") ||
+                (button && button.textContent.toUpperCase().includes("PAGAR"))) {
                 
                 fbq('track', 'InitiateCheckout', {
                     value: 8500,
@@ -2712,7 +2714,7 @@
                     num_items: 1,
                     contents: [{id: 'oxidur-negro', quantity: 1}]
                 });
-                console.log("💳 InitiateCheckout disparado correctamente");
+                console.log("💳 InitiateCheckout DISPARADO");
             }
         });
     </script>
