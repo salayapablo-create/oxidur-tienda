@@ -2665,9 +2665,9 @@
     </div>
   </div>
 </div>
-      <!-- ==================== META PIXEL EVENTS - VERSIÓN ULTRA ==================== -->
+      <!-- ==================== META PIXEL EVENTS - VERSIÓN DEFINITIVA ==================== -->
     <script>
-        console.log("✅ Meta Pixel Events ULTRA cargados");
+        console.log("✅ Meta Pixel Events DEFINITIVA cargados");
 
         // ViewContent
         window.addEventListener('load', () => {
@@ -2686,34 +2686,29 @@
         document.addEventListener('click', (e) => {
             const text = (e.target.textContent || '').trim().toUpperCase();
             if (text.includes("AGREGAR AL CARRITO")) {
-                fbq('track', 'AddToCart', { content_ids: ['oxidur-negro'], content_type: 'product', value: 8500, currency: 'ARS' });
-                console.log("🛒 AddToCart OK");
+                fbq('track', 'AddToCart', {
+                    content_ids: ['oxidur-negro'],
+                    content_type: 'product',
+                    content_name: 'OXIDUR',
+                    value: 8500,
+                    currency: 'ARS'
+                });
             }
         });
 
-        // InitiateCheckout - Versión máxima
+        // InitiateCheckout - Con delay para que llegue antes de la redirección
         document.addEventListener('click', (e) => {
             const text = (e.target.textContent || e.target.innerText || '').trim().toUpperCase();
-            const btn = e.target.closest('button');
-
-            if (text.includes("PAGAR CON MERCADOPAGO") || 
-                text.includes("PAGAR") || 
-                text.includes("FINALIZAR") ||
-                (btn && btn.textContent.toUpperCase().includes("PAGAR"))) {
+            if (text.includes("PAGAR CON MERCADOPAGO") || text.includes("PAGAR")) {
                 
+                // Disparamos el evento inmediatamente
                 fbq('track', 'InitiateCheckout', {
                     value: 8500,
                     currency: 'ARS',
                     num_items: 1
                 });
-                console.log("💳 InitiateCheckout DISPARADO EXITOSAMENTE");
-            }
-        });
-
-        // Debug: Mostrar en consola cualquier clic en botón azul
-        document.addEventListener('click', (e) => {
-            if (e.target.tagName === "BUTTON" || e.target.closest('button')) {
-                console.log("🔘 Botón clickeado:", e.target.textContent.trim());
+                
+                console.log("💳 InitiateCheckout disparado ANTES de redirección");
             }
         });
     </script>
