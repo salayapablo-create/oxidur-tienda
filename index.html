@@ -2665,9 +2665,9 @@
     </div>
   </div>
 </div>
-    <!-- ==================== META PIXEL EVENTS - VERSIÓN ACTUALIZADA ==================== -->
+       <!-- ==================== META PIXEL EVENTS - VERSIÓN 3 (MEJORADA) ==================== -->
     <script>
-        console.log("✅ Meta Pixel Events v2 cargados");
+        console.log("✅ Meta Pixel Events v3 cargados");
 
         // ViewContent
         window.addEventListener('load', function() {
@@ -2682,7 +2682,7 @@
             }, 1000);
         });
 
-        // AddToCart (ya funciona)
+        // AddToCart
         document.addEventListener('click', function(e) {
             const text = (e.target.textContent || '').trim();
             if (text.includes("AGREGAR AL CARRITO") || text.includes("Agregar al carrito")) {
@@ -2697,20 +2697,22 @@
             }
         });
 
-        // InitiateCheckout (mejorado)
+        // InitiateCheckout - Versión más fuerte
         document.addEventListener('click', function(e) {
             const text = (e.target.textContent || '').trim();
-            if (text.includes("Finalizar compra") || 
+            if (text.includes("PAGAR CON MERCADOPAGO") || 
+                text.includes("Finalizar compra") || 
                 text.includes("Pagar") || 
-                text.includes("checkout") || 
-                e.target.closest('button')?.textContent.includes("Finalizar")) {
+                e.target.id.includes("checkout") ||
+                e.target.closest('button')?.textContent.includes("PAGAR")) {
                 
                 fbq('track', 'InitiateCheckout', {
                     value: 8500,
                     currency: 'ARS',
-                    num_items: 1
+                    num_items: 1,
+                    contents: [{id: 'oxidur-negro', quantity: 1}]
                 });
-                console.log("💳 InitiateCheckout disparado");
+                console.log("💳 InitiateCheckout disparado correctamente");
             }
         });
     </script>
