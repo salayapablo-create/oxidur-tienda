@@ -27,11 +27,10 @@
     <!-- End Meta Pixel Code -->
     <!-- ================================================== -->
 
-    <!-- Fonts: Anton ... -->
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow+Condensed:wght@400;500;600;700;800&family=Barlow:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
     
 <style>
   :root {
@@ -2666,7 +2665,68 @@
     </div>
   </div>
 </div>
+<!-- ==================== META PIXEL EVENTS ==================== -->
+    <script>
+    // Evento ViewContent cuando se ve el producto principal
+    function trackViewContent() {
+        fbq('track', 'ViewContent', {
+            content_ids: ['oxidur-negro'],
+            content_type: 'product',
+            content_name: 'OXIDUR Negro',
+            value: 8500,
+            currency: 'ARS'
+        });
+    }
 
+    // Evento AddToCart
+    function trackAddToCart(productName, price, quantity = 1) {
+        fbq('track', 'AddToCart', {
+            content_ids: ['oxidur-negro'],
+            content_type: 'product',
+            content_name: productName,
+            value: price * quantity,
+            currency: 'ARS',
+            num_items: quantity
+        });
+    }
+
+    // Evento InitiateCheckout
+    function trackInitiateCheckout(total) {
+        fbq('track', 'InitiateCheckout', {
+            value: total,
+            currency: 'ARS',
+            num_items: 1
+        });
+    }
+
+    // Ejecutar ViewContent cuando cargue la página
+    window.addEventListener('load', function() {
+        setTimeout(trackViewContent, 800); // pequeño delay para que cargue bien
+    });
+
+    // === INTEGRACIÓN CON TU BOTÓN DE AGREGAR AL CARRITO ===
+    // Este código se ejecuta después de que cargue app.js
+    document.addEventListener('DOMContentLoaded', function() {
+        const addCartBtn = document.getElementById('addCartBtn');
+        if (addCartBtn) {
+            addCartBtn.addEventListener('click', function() {
+                const qty = parseInt(document.getElementById('qtyNum').textContent) || 1;
+                const price = 8500; // Cambia si usas precios variables
+                trackAddToCart('OXIDUR Negro', price, qty);
+            });
+        }
+
+        // Checkout
+        const checkoutBtn = document.getElementById('checkoutBtn');
+        if (checkoutBtn) {
+            checkoutBtn.addEventListener('click', function() {
+                const total = parseFloat(document.getElementById('cartTotal').textContent.replace(/[$.]/g, '')) || 0;
+                if (total > 0) trackInitiateCheckout(total);
+            });
+        }
+    });
+    </script>
+    <!-- ================================================== -->
 <script src="app.js"></script>
 </body>
 </html>
