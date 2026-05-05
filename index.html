@@ -441,6 +441,292 @@
     .hero-visual { min-height: 380px; }
   }
 
+  /* ============ TRANSFORM SECTION ============ */
+  .transform {
+    background:
+      radial-gradient(circle at 80% 0%, rgba(255,91,31,0.06) 0%, transparent 50%),
+      var(--bg);
+    padding: 100px 32px;
+    position: relative;
+    overflow: hidden;
+  }
+  .transform::before {
+    content: 'OXIDUR';
+    position: absolute;
+    top: -20px;
+    right: -50px;
+    font-family: 'Anton', sans-serif;
+    font-size: 280px;
+    color: rgba(255,91,31,0.04);
+    letter-spacing: 0.02em;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .transform-content {
+    max-width: 1280px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+  .transform-eyebrow {
+    display: inline-block;
+    background: var(--accent);
+    color: #0d0d0f;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800;
+    font-size: 12px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 6px 14px;
+    margin-bottom: 20px;
+  }
+  .transform-title {
+    font-family: 'Anton', sans-serif;
+    font-size: clamp(40px, 6vw, 78px);
+    line-height: 0.95;
+    text-transform: uppercase;
+    letter-spacing: -0.005em;
+    margin-bottom: 24px;
+    max-width: 1100px;
+  }
+  .transform-title .accent { color: var(--accent); }
+  .transform-lead {
+    font-size: 19px;
+    line-height: 1.5;
+    color: var(--text-dim);
+    max-width: 780px;
+    margin-bottom: 60px;
+  }
+  .transform-lead strong { color: var(--text); font-weight: 600; }
+
+  /* Cards de ventajas (6 items) */
+  .benefits-section {
+    margin: 50px 0 60px;
+  }
+  .benefits-question {
+    font-family: 'Anton', sans-serif;
+    font-size: clamp(28px, 4vw, 44px);
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    margin-bottom: 36px;
+    color: var(--text);
+  }
+  .benefits-question .accent { color: var(--accent); }
+  .benefits-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+  .benefit-card {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    padding: 28px 24px;
+    transition: all .25s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .benefit-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-3px);
+  }
+  .benefit-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 4px; height: 0;
+    background: var(--accent);
+    transition: height .3s ease;
+  }
+  .benefit-card:hover::before { height: 100%; }
+  .benefit-icon {
+    width: 48px;
+    height: 48px;
+    background: rgba(255,91,31,0.1);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 18px;
+  }
+  .benefit-icon svg { width: 24px; height: 24px; }
+  .benefit-title {
+    font-family: 'Anton', sans-serif;
+    font-size: 22px;
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    margin-bottom: 10px;
+    color: var(--text);
+  }
+  .benefit-text {
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--text-dim);
+  }
+
+  /* Aplicaciones (chips) */
+  .applications {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    padding: 36px;
+    margin: 60px 0;
+    position: relative;
+  }
+  .applications-eyebrow {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 16px;
+  }
+  .applications-title {
+    font-family: 'Anton', sans-serif;
+    font-size: clamp(26px, 3.5vw, 36px);
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    margin-bottom: 22px;
+    color: var(--text);
+  }
+  .applications-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .app-chip {
+    background: var(--bg-3);
+    border: 1px solid var(--border);
+    padding: 10px 18px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text);
+    transition: all .2s ease;
+  }
+  .app-chip:hover {
+    background: var(--accent);
+    color: #0d0d0f;
+    border-color: var(--accent);
+    transform: translateY(-2px);
+  }
+
+  /* Transformación visual antes/después */
+  .transformation-arrow {
+    background: linear-gradient(135deg, rgba(255,91,31,0.05) 0%, rgba(255,91,31,0) 100%);
+    border-left: 4px solid var(--accent);
+    padding: 28px 32px;
+    margin: 40px 0;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .transformation-state {
+    flex: 1;
+    min-width: 200px;
+  }
+  .transformation-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+  }
+  .transformation-text {
+    font-family: 'Anton', sans-serif;
+    font-size: 24px;
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    color: var(--text);
+  }
+  .transformation-text.before { color: var(--text-dim); text-decoration: line-through; }
+  .transformation-text.after { color: var(--accent); }
+  .transformation-icon {
+    color: var(--accent);
+    font-size: 36px;
+  }
+
+  /* CTA final */
+  .transform-cta {
+    background: linear-gradient(135deg, var(--accent) 0%, #ff7733 100%);
+    color: #0d0d0f;
+    padding: 50px 40px;
+    text-align: center;
+    margin-top: 30px;
+    position: relative;
+    overflow: hidden;
+  }
+  .transform-cta::before {
+    content: '🛒';
+    position: absolute;
+    top: 50%;
+    right: -20px;
+    transform: translateY(-50%);
+    font-size: 200px;
+    opacity: 0.1;
+    pointer-events: none;
+  }
+  .transform-cta-title {
+    font-family: 'Anton', sans-serif;
+    font-size: clamp(28px, 4.5vw, 48px);
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    line-height: 1;
+    margin-bottom: 14px;
+    position: relative;
+    z-index: 1;
+  }
+  .transform-cta-text {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 600;
+    font-size: 18px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-bottom: 26px;
+    position: relative;
+    z-index: 1;
+  }
+  .transform-cta-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: #0d0d0f;
+    color: var(--accent);
+    font-family: 'Anton', sans-serif;
+    font-size: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 18px 36px;
+    text-decoration: none;
+    transition: all .25s ease;
+    position: relative;
+    z-index: 1;
+  }
+  .transform-cta-btn:hover {
+    background: var(--text);
+    color: #0d0d0f;
+    transform: translateY(-2px);
+  }
+
+  @media (max-width: 900px) {
+    .benefits-grid { grid-template-columns: repeat(2, 1fr); }
+    .transform { padding: 70px 24px; }
+    .transform::before { font-size: 180px; }
+    .applications { padding: 26px 22px; }
+    .transform-cta { padding: 36px 24px; }
+  }
+  @media (max-width: 560px) {
+    .benefits-grid { grid-template-columns: 1fr; }
+    .transformation-arrow { padding: 22px; gap: 16px; }
+    .transformation-icon { font-size: 28px; }
+    .transformation-text { font-size: 20px; }
+  }
+
   /* ============ TICKER ============ */
   .ticker {
     background: var(--text);
@@ -1737,6 +2023,126 @@
         </button>
       </div>
     </div>
+  </div>
+</section>
+
+<!-- TRANSFORM (sección de venta) -->
+<section class="transform">
+  <div class="transform-content">
+    <span class="transform-eyebrow">Transformá tus metales</span>
+    <h2 class="transform-title">
+      ¡Transformá el óxido en algo <span class="accent">impecable</span> con OXIDUR! 🔥
+    </h2>
+    <p class="transform-lead">
+      OXIDUR es el esmalte antioxidante de <strong>base acuosa</strong> que pinta directo sobre el óxido, <strong>sin lijar, sin solventes y sin complicaciones</strong>. Olvidate de horas de preparación: aplicás, dejás secar y listo. ¡Protección profesional con un acabado espectacular!
+    </p>
+
+    <!-- 6 ventajas en cards -->
+    <div class="benefits-section">
+      <h3 class="benefits-question">¿Por qué vas a enamorarte de <span class="accent">OXIDUR</span>?</h3>
+      <div class="benefits-grid">
+
+        <div class="benefit-card">
+          <div class="benefit-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-12V5l-8-3-8 3v5c0 8 8 12 8 12z"/><path d="m9 12 2 2 4-4"/></svg>
+          </div>
+          <h4 class="benefit-title">Directo sobre óxido</h4>
+          <p class="benefit-text">Penetra, se adhiere fuerte y frena el avance de la corrosión. Forma una barrera duradera.</p>
+        </div>
+
+        <div class="benefit-card">
+          <div class="benefit-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m4.93 4.93 14.14 14.14"/></svg>
+          </div>
+          <h4 class="benefit-title">Sin lijar ni imprimación</h4>
+          <p class="benefit-text">Ahorrás tiempo, esfuerzo y dinero. Pintás directo sobre el metal oxidado.</p>
+        </div>
+
+        <div class="benefit-card">
+          <div class="benefit-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69 5.5 13.5C4 16 5 19.5 8 21c2.5 1 5.5.5 7.5-1.5s2.5-5 1-7.5L12 2.69z"/></svg>
+          </div>
+          <h4 class="benefit-title">Base acuosa</h4>
+          <p class="benefit-text">Sin olores fuertes, sin solventes tóxicos. Fácil de limpiar con agua.</p>
+        </div>
+
+        <div class="benefit-card">
+          <div class="benefit-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <h4 class="benefit-title">Secado ultra rápido</h4>
+          <p class="benefit-text">Tacto seco en 1 hora, repintás en 4 horas. Listo para usar el mismo día.</p>
+        </div>
+
+        <div class="benefit-card">
+          <div class="benefit-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/><circle cx="12" cy="12" r="4"/></svg>
+          </div>
+          <h4 class="benefit-title">Resistente a todo</h4>
+          <p class="benefit-text">Lluvia, humedad, UV y exteriores. Ideal para intemperie. Te lo bancamos.</p>
+        </div>
+
+        <div class="benefit-card">
+          <div class="benefit-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+          </div>
+          <h4 class="benefit-title">Alta cobertura</h4>
+          <p class="benefit-text">1 litro rinde hasta 10 m². Con una o dos manos tenés un acabado uniforme y profesional.</p>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Aplicaciones -->
+    <div class="applications">
+      <div class="applications-eyebrow">Perfecto para</div>
+      <h3 class="applications-title">Cualquier superficie oxidada</h3>
+      <div class="applications-chips">
+        <span class="app-chip">Rejas</span>
+        <span class="app-chip">Portones</span>
+        <span class="app-chip">Escaleras</span>
+        <span class="app-chip">Estructuras metálicas</span>
+        <span class="app-chip">Motores</span>
+        <span class="app-chip">Muebles de jardín</span>
+        <span class="app-chip">Chasis</span>
+        <span class="app-chip">Maquinarias</span>
+        <span class="app-chip">Tanques</span>
+        <span class="app-chip">Herramientas</span>
+      </div>
+    </div>
+
+    <!-- Transformación antes/después -->
+    <div class="transformation-arrow">
+      <div class="transformation-state">
+        <div class="transformation-label">Antes</div>
+        <div class="transformation-text before">Oxidado y feo</div>
+      </div>
+      <div class="transformation-icon">→</div>
+      <div class="transformation-state">
+        <div class="transformation-label">Después</div>
+        <div class="transformation-text after">Prolijo y protegido</div>
+      </div>
+      <div class="transformation-icon" style="margin-left:auto">⏱️</div>
+      <div class="transformation-state" style="flex:0 0 auto">
+        <div class="transformation-label">En</div>
+        <div class="transformation-text">Pocas horas</div>
+      </div>
+    </div>
+
+    <p class="transform-lead" style="margin-top:40px;margin-bottom:0">
+      OXIDUR es la solución <strong>práctica, rápida y económica</strong> que estaban esperando todos los que restauran o mantienen metal. Ya sea para casa, taller o obra: <strong>una pasada y cambia todo.</strong> Protegé lo que te importa y dale una nueva vida a tus metales.
+    </p>
+
+    <!-- CTA final -->
+    <div class="transform-cta">
+      <h3 class="transform-cta-title">¿Listo para comprar?</h3>
+      <p class="transform-cta-text">Elegí tu color y tamaño · Disponible en 1L y 4L · Envío gratis a todo el país</p>
+      <a href="#productos" class="transform-cta-btn">
+        Ver productos
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+      </a>
+    </div>
+
   </div>
 </section>
 
