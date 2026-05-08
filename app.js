@@ -5,7 +5,7 @@
 // ----- CONFIGURACIÓN DE WHATSAPP ------------------------
 // Pegá tu número con código de país sin "+", sin espacios ni guiones.
 // Ejemplo Argentina: 5491123456789  (54 = país, 9 = celular, 11 = área, número)
-const WHATSAPP_NUMBER = '5491158533291'; // ← REEMPLAZAR con tu número
+const WHATSAPP_NUMBER = '5491123456789'; // ← REEMPLAZAR con tu número
 const WHATSAPP_MESSAGE = 'Hola! Quiero hacer una consulta sobre OXIDUR';
 
 // ----- CONFIGURACIÓN DE MERCADOPAGO ---------------------
@@ -24,8 +24,8 @@ const PRODUCTS = [
     name: 'OXIDUR',
     description: 'Esmalte antioxidante de base acuosa',
     sizes: [
-      { id: '1l', label: '1 LITRO',  price: 49000,  rinde: '10 m²' },
-      { id: '4l', label: '4 LITROS', price: 189000, rinde: '40 m²' }
+      { id: '1l', label: '1 LITRO',  price: 8500,  rinde: '10 m²' },
+      { id: '4l', label: '4 LITROS', price: 28900, rinde: '40 m²' }
     ],
     rendimiento: 'Rinde hasta 10 m² por litro',
     tag: 'MÁS VENDIDO'
@@ -322,6 +322,7 @@ $('#mpBtn').addEventListener('click', async () => {
     phone: $('#ckPhone').value.trim(),
     dni: $('#ckDni').value.trim(),
     address: $('#ckAddr').value.trim(),
+    floor: $('#ckFloor').value.trim(),
     city: $('#ckCity').value.trim(),
     cp: $('#ckCp').value.trim()
   };

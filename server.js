@@ -3,87 +3,143 @@
 // ============================================================
 // Integraciones:
 //   - MercadoPago (cobro)
-//   - Envia.com (generación automática de guía cuando se cobra)
-//   - Webhook que conecta MP → Envia
+//   - MiCorreo API (Correo Argentino) - generación automática de guías
+//   - Resend (notificaciones por email)
 //
-// INSTALACIÓN LOCAL:
-//   npm init -y
-//   npm install express cors mercadopago axios dotenv
-//   node server.js
+// API REST de MiCorreo (Correo Argentino)
+// Documentación oficial: apiMiCorreo.pdf v2025-01-14
 //
-// VARIABLES DE ENTORNO (configurar en Render / archivo .env):
-//   MP_ACCESS_TOKEN       Access Token de MercadoPago
-//   ENVIA_API_KEY         API Key de Envia.com
-//   SITE_URL              URL pública del sitio (ej: https://oxidur.com.ar)
-//   NOTIFY_EMAIL          Email donde recibís las notificaciones de pedidos
+// Flujo de auth:
+//   1. POST /token con HTTP Basic Auth (usuario:password)
+//      → devuelve JWT token
+//   2. Usar token como Bearer en headers para resto de endpoints
+//   3. Token expira ~2hs, se renueva automáticamente
 //
+// VARIABLES DE ENTORNO (Render):
+//   MP_ACCESS_TOKEN          MercadoPago
+//   CORREO_USER              Usuario de API MiCorreo
+//   CORREO_PASSWORD          Contraseña de API MiCorreo
+//   CORREO_CUSTOMER_ID       customerId (opcional - se obtiene auto)
+//   CORREO_MODE              "test" o "production"
+//   SITE_URL                 URL pública
+//   RESEND_API_KEY           Resend
+//   EMAIL_FROM               Mail "de"
+//   ADMIN_EMAILS             Mails admin separados por coma
+//   WHATSAPP_NUMBER          WhatsApp
 // ============================================================
 
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
+const crypto = require('crypto');
 const { MercadoPagoConfig, Preference, Payment } = require('mercadopago');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
-app.use(express.static('.')); // sirve el frontend
+app.use(express.static('.'));
 
 // ============================================================
 // CONFIGURACIÓN
 // ============================================================
 
-// Credenciales (leídas de variables de entorno por seguridad)
-const MP_ACCESS_TOKEN = process.env.MP_ACCESS_TOKEN || 'PEGAR_AQUI_PARA_TESTING_LOCAL';
-const ENVIA_API_KEY   = process.env.ENVIA_API_KEY   || 'PEGAR_AQUI_PARA_TESTING_LOCAL';
-const SITE_URL        = process.env.SITE_URL        || 'http://localhost:3000';
-const NOTIFY_EMAIL    = process.env.NOTIFY_EMAIL    || 'microfloor1@hotmail.com';
+// MercadoPago
+const MP_ACCESS_TOKEN = process.env.MP_ACCESS_TOKEN || '';
+const MP_WEBHOOK_SECRET = process.env.MP_WEBHOOK_SECRET || '';
 
-// Modo de Envia: "test" para sandbox, "production" para real
-const ENVIA_MODE = process.env.ENVIA_MODE || 'test';
-const ENVIA_BASE_URL = ENVIA_MODE === 'production'
-  ? 'https://api.envia.com'
-  : 'https://api-test.envia.com'; // sandbox oficial
+// MiCorreo (Correo Argentino)
+const CORREO_USER         = process.env.CORREO_USER         || '';
+const CORREO_PASSWORD     = process.env.CORREO_PASSWORD     || '';
+const CORREO_CUSTOMER_ID  = process.env.CORREO_CUSTOMER_ID  || ''; // se cachea si no se pasa
+const CORREO_MODE         = process.env.CORREO_MODE         || 'test';
 
-// ----- RESEND (envío de emails) -----------------------------
-// Conseguí tu API Key en https://resend.com/api-keys (3.000 emails gratis/mes)
-const RESEND_API_KEY = process.env.RESEND_API_KEY || '';
-// Mail "de" que aparece en los correos. En modo prueba podés usar el default de Resend.
-const EMAIL_FROM = process.env.EMAIL_FROM || 'OXIDUR <onboarding@resend.dev>';
-// Lista de mails del admin separados por coma (ej: "uno@x.com,dos@y.com")
-const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || NOTIFY_EMAIL)
-  .split(',')
-  .map(e => e.trim())
-  .filter(Boolean);
-// WhatsApp para mostrar en el mail al cliente
-const WHATSAPP_NUMBER = process.env.WHATSAPP_NUMBER || '5491158533291';
+const CORREO_BASE_URL = CORREO_MODE === 'production'
+  ? 'https://api.correoargentino.com.ar/micorreo/v1'
+  : 'https://apitest.correoargentino.com.ar/micorreo/v1';
+
+// Site
+const SITE_URL = process.env.SITE_URL || 'http://localhost:3000';
 
 // ----- Datos del REMITENTE (HIDROSOL SRL) -------------------
 const SENDER = {
   name: 'HIDROSOL SRL',
-  company: 'HIDROSOL SRL',
-  email: 'microfloor1@hotmail.com',
   phone: '1158533291',
-  street: 'Gral. Heredia',
-  number: '2353',
-  district: 'Gerli',
-  city: 'Avellaneda',
-  state: { name: 'Buenos Aires', code: 'B' },
-  country: 'AR',
-  postalCode: '1869',
-  reference: 'Entre Ferré y Magán'
+  cellPhone: '1158533291',
+  email: 'microfloor1@hotmail.com',
+  originAddress: {
+    streetName: 'Gral. Heredia',
+    streetNumber: '2353',
+    floor: '',
+    apartment: '',
+    city: 'Avellaneda',
+    provinceCode: 'B',
+    postalCode: '1869'
+  },
+  postalCodeOrigin: '1869'  // CP de origen de envíos
 };
 
 // ----- Catálogo de productos físicos ------------------------
-// Pesos en kg, dimensiones en cm (caja de envío)
+// MiCorreo: pesos en GRAMOS, dimensiones enteras en CM
 const PRODUCT_SPECS = {
-  '1l': { weight: 1.1, length: 12, width: 12, height: 15, name: 'OXIDUR 1L' },
-  '4l': { weight: 4.2, length: 18, width: 18, height: 22, name: 'OXIDUR 4L' }
+  '1l': { weight: 1100, length: 15, width: 12, height: 12, name: 'OXIDUR 1L' },
+  '4l': { weight: 4200, length: 22, width: 18, height: 18, name: 'OXIDUR 4L' }
 };
 
+// ----- Provincias AR → códigos ISO 3166-2 -------------------
+const PROVINCIAS_AR = {
+  'salta': 'A',
+  'buenos aires': 'B',
+  'provincia de buenos aires': 'B',
+  'caba': 'C',
+  'capital federal': 'C',
+  'ciudad autonoma de buenos aires': 'C',
+  'ciudad autónoma de buenos aires': 'C',
+  'san luis': 'D',
+  'entre rios': 'E',
+  'entre ríos': 'E',
+  'la rioja': 'F',
+  'santiago del estero': 'G',
+  'chaco': 'H',
+  'san juan': 'J',
+  'catamarca': 'K',
+  'la pampa': 'L',
+  'mendoza': 'M',
+  'misiones': 'N',
+  'formosa': 'P',
+  'neuquen': 'Q',
+  'neuquén': 'Q',
+  'rio negro': 'R',
+  'río negro': 'R',
+  'santa fe': 'S',
+  'tucuman': 'T',
+  'tucumán': 'T',
+  'chubut': 'U',
+  'tierra del fuego': 'V',
+  'corrientes': 'W',
+  'cordoba': 'X',
+  'córdoba': 'X',
+  'jujuy': 'Y',
+  'santa cruz': 'Z'
+};
+
+function normalizarProvincia(nombre) {
+  if (!nombre) return 'B';
+  if (/^[A-Z]$/.test(nombre)) return nombre;
+  const key = nombre.toLowerCase().trim();
+  return PROVINCIAS_AR[key] || 'B';
+}
+
+// ----- Resend -----
+const RESEND_API_KEY = process.env.RESEND_API_KEY || '';
+const EMAIL_FROM     = process.env.EMAIL_FROM || 'OXIDUR <onboarding@resend.dev>';
+const NOTIFY_EMAIL   = process.env.NOTIFY_EMAIL || 'microfloor1@hotmail.com';
+const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || NOTIFY_EMAIL)
+  .split(',').map(e => e.trim()).filter(Boolean);
+const WHATSAPP_NUMBER = process.env.WHATSAPP_NUMBER || '5491158533291';
+
 // ============================================================
-// MERCADOPAGO: Crear preferencia de pago
+// MERCADOPAGO
 // ============================================================
 
 const mpClient = new MercadoPagoConfig({ accessToken: MP_ACCESS_TOKEN });
@@ -92,7 +148,6 @@ app.post('/api/create-preference', async (req, res) => {
   try {
     const { items, payer } = req.body;
 
-    // Validación básica
     if (!items || items.length === 0) {
       return res.status(400).json({ error: 'No hay items en el pedido' });
     }
@@ -119,10 +174,7 @@ app.post('/api/create-preference', async (req, res) => {
             zip_code: payer.cp
           }
         },
-        shipments: {
-          cost: 0,                  // envío gratis para el cliente
-          mode: 'not_specified'
-        },
+        shipments: { cost: 0, mode: 'not_specified' },
         back_urls: {
           success: `${SITE_URL}/gracias.html`,
           failure: `${SITE_URL}/error.html`,
@@ -131,7 +183,6 @@ app.post('/api/create-preference', async (req, res) => {
         auto_return: 'approved',
         statement_descriptor: 'OXIDUR',
         notification_url: `${SITE_URL}/api/webhook/mercadopago`,
-        // Metadata: guardamos los datos del pedido para usar después en Envia
         metadata: {
           payer_full: JSON.stringify(payer),
           items_full: JSON.stringify(items)
@@ -140,10 +191,7 @@ app.post('/api/create-preference', async (req, res) => {
       }
     });
 
-    res.json({
-      id: result.id,
-      init_point: result.init_point
-    });
+    res.json({ id: result.id, init_point: result.init_point });
   } catch (err) {
     console.error('Error creando preferencia:', err);
     res.status(500).json({ error: 'No se pudo crear la preferencia de pago' });
@@ -151,23 +199,281 @@ app.post('/api/create-preference', async (req, res) => {
 });
 
 // ============================================================
-// WEBHOOK MercadoPago: cuando se acredita un pago, generamos la guía
+// MICORREO · Auth con JWT (token cacheado)
 // ============================================================
 
+let cachedToken = null;
+let tokenExpiry = null;
+let cachedCustomerId = CORREO_CUSTOMER_ID;
+
+/**
+ * Obtiene un JWT token válido. Lo cachea y lo renueva automáticamente
+ * cuando se acerca a la expiración.
+ */
+async function getCorreoToken() {
+  // Si tenemos token cacheado y todavía es válido (con 5min de margen), devolverlo
+  if (cachedToken && tokenExpiry && Date.now() < tokenExpiry - 5 * 60 * 1000) {
+    return cachedToken;
+  }
+
+  if (!CORREO_USER || !CORREO_PASSWORD) {
+    throw new Error('CORREO_USER o CORREO_PASSWORD no configurados');
+  }
+
+  // Login con HTTP Basic Auth
+  const response = await axios.post(
+    `${CORREO_BASE_URL}/token`,
+    null,
+    {
+      auth: { username: CORREO_USER, password: CORREO_PASSWORD },
+      timeout: 15000
+    }
+  );
+
+  cachedToken = response.data.token;
+  // expires viene como "2022-04-26 21:16:20"
+  tokenExpiry = new Date(response.data.expires.replace(' ', 'T') + '-03:00').getTime();
+
+  console.log(`🔑 Token MiCorreo obtenido. Expira: ${response.data.expires}`);
+  return cachedToken;
+}
+
+/**
+ * Helper para llamar a la API de MiCorreo con el token automático
+ */
+async function correoRequest(method, path, data, params) {
+  const token = await getCorreoToken();
+  return axios({
+    method,
+    url: `${CORREO_BASE_URL}${path}`,
+    data,
+    params,
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    timeout: 25000
+  });
+}
+
+/**
+ * Obtiene el customerId. Si no está cacheado, lo busca con /users/validate.
+ */
+async function getCustomerId() {
+  if (cachedCustomerId) return cachedCustomerId;
+
+  const response = await correoRequest('POST', '/users/validate', {
+    email: CORREO_USER,
+    password: CORREO_PASSWORD
+  });
+
+  cachedCustomerId = response.data.customerId;
+  console.log(`👤 customerId MiCorreo: ${cachedCustomerId}`);
+  return cachedCustomerId;
+}
+
+// ============================================================
+// MICORREO · Generar envío
+// ============================================================
+
+/**
+ * Calcula peso total y dimensiones del paquete según items del carrito.
+ * Si hay 4L, usa esas dimensiones (caja más grande).
+ * Pesos sumados, dentro del límite de 25kg de MiCorreo.
+ */
+function buildShipping(items) {
+  const tieneCuatroLitros = items.some(i => /4\s*LITROS?/i.test(i.title));
+  let pesoTotal = 0;
+  let valorDeclarado = 0;
+
+  for (const item of items) {
+    const isFourLiters = /4\s*LITROS?/i.test(item.title);
+    const spec = isFourLiters ? PRODUCT_SPECS['4l'] : PRODUCT_SPECS['1l'];
+    pesoTotal += spec.weight * item.quantity;
+    valorDeclarado += item.unit_price * item.quantity;
+  }
+
+  const spec = tieneCuatroLitros ? PRODUCT_SPECS['4l'] : PRODUCT_SPECS['1l'];
+
+  return {
+    weight: Math.min(pesoTotal, 25000),
+    declaredValue: valorDeclarado,
+    height: spec.height,
+    length: spec.length,
+    width: spec.width
+  };
+}
+
+/**
+ * Crea un envío en MiCorreo.
+ * Tipo de entrega: 'D' (homeDelivery, a domicilio).
+ */
+async function crearEnvioCorreo({ payer, items, orderRef }) {
+  if (!CORREO_USER || !CORREO_PASSWORD) {
+    return { ok: false, error: 'MiCorreo no configurado (faltan credenciales)' };
+  }
+
+  try {
+    const customerId = await getCustomerId();
+    const shipping = buildShipping(items);
+    const provinciaCode = normalizarProvincia(payer.state || payer.province);
+
+    const orderData = {
+      customerId,
+      extOrderId: orderRef,
+      orderNumber: orderRef,
+      sender: {
+        name: SENDER.name,
+        phone: SENDER.phone,
+        cellPhone: SENDER.cellPhone,
+        email: SENDER.email,
+        originAddress: SENDER.originAddress
+      },
+      recipient: {
+        name: payer.name || 'Cliente',
+        phone: payer.phone || '',
+        cellPhone: payer.phone || '',
+        email: payer.email || ''
+      },
+      shipping: {
+        deliveryType: 'D',           // D = Domicilio
+        agency: null,
+        productType: 'CP',           // CP = Paquete
+        address: {
+          streetName: payer.address || '',
+          streetNumber: payer.streetNumber || 'S/N',
+          floor: payer.floor || '',
+          apartment: payer.apartment || '',
+          city: payer.city || '',
+          provinceCode: provinciaCode,
+          postalCode: payer.cp || ''
+        },
+        weight: shipping.weight,
+        declaredValue: shipping.declaredValue,
+        height: shipping.height,
+        length: shipping.length,
+        width: shipping.width
+      }
+    };
+
+    const response = await correoRequest('POST', '/shipping/import', orderData);
+
+    if (response.data?.createdAt) {
+      return {
+        ok: true,
+        createdAt: response.data.createdAt,
+        orderRef,
+        message: 'Envío importado a MiCorreo. Revisá el panel para imprimir el rótulo.'
+      };
+    } else {
+      console.error('Respuesta inesperada de MiCorreo:');
+      console.error(JSON.stringify(response.data, null, 2));
+      return {
+        ok: false,
+        error: response.data?.message || 'Respuesta inesperada de MiCorreo',
+        raw: response.data
+      };
+    }
+  } catch (err) {
+    console.error('Error en llamada a MiCorreo:');
+    if (err.response) {
+      console.error('Status:', err.response.status);
+      console.error('Body:', JSON.stringify(err.response.data, null, 2));
+    } else {
+      console.error('Mensaje:', err.message);
+    }
+
+    const errData = err.response?.data;
+    const errorMsg = errData?.message || errData?.error || err.message;
+
+    return { ok: false, error: errorMsg, raw: errData };
+  }
+}
+
+// ============================================================
+// WEBHOOK MercadoPago
+// ============================================================
+
+/**
+ * Valida la firma de un webhook de MercadoPago.
+ * MP manda 2 headers: x-signature y x-request-id.
+ * x-signature tiene formato: "ts=1234567890,v1=hash..."
+ *
+ * El "manifest" a firmar es: id:{data.id};request-id:{x-request-id};ts:{ts};
+ * La firma se calcula con HMAC-SHA256(manifest, MP_WEBHOOK_SECRET).
+ * Si coincide con v1 → webhook legítimo.
+ *
+ * Devuelve true si es válido, false si no.
+ * Si MP_WEBHOOK_SECRET no está configurado, omite la validación (modo legacy).
+ */
+function validarFirmaWebhookMP(req) {
+  if (!MP_WEBHOOK_SECRET) {
+    console.warn('⚠ MP_WEBHOOK_SECRET no configurado, no se valida firma');
+    return true; // permitir todo si no hay clave (compatibilidad)
+  }
+
+  const xSignature = req.headers['x-signature'];
+  const xRequestId = req.headers['x-request-id'];
+  const dataId = req.query['data.id'] || req.body?.data?.id;
+
+  if (!xSignature || !xRequestId || !dataId) {
+    console.warn('⚠ Faltan headers o data.id para validar firma');
+    return false;
+  }
+
+  // Parsear x-signature: "ts=1234567890,v1=abcdef..."
+  const parts = xSignature.split(',');
+  let ts = null, v1 = null;
+  for (const p of parts) {
+    const [k, v] = p.trim().split('=');
+    if (k === 'ts') ts = v;
+    if (k === 'v1') v1 = v;
+  }
+
+  if (!ts || !v1) {
+    console.warn('⚠ x-signature mal formado');
+    return false;
+  }
+
+  // Construir manifest según especificación oficial MP
+  const manifest = `id:${dataId};request-id:${xRequestId};ts:${ts};`;
+
+  // Calcular HMAC-SHA256
+  const expectedSignature = crypto
+    .createHmac('sha256', MP_WEBHOOK_SECRET)
+    .update(manifest)
+    .digest('hex');
+
+  // Comparar (timingSafeEqual previene ataques de timing)
+  const valid = crypto.timingSafeEqual(
+    Buffer.from(expectedSignature, 'hex'),
+    Buffer.from(v1, 'hex')
+  );
+
+  if (!valid) {
+    console.warn(`⚠ Firma inválida. Esperaba ${expectedSignature}, recibí ${v1}`);
+  }
+
+  return valid;
+}
+
 app.post('/api/webhook/mercadopago', async (req, res) => {
-  // Respondemos rápido para no hacer timeout (MP reintenta si tarda mucho)
-  res.sendStatus(200);
+  // Validar firma ANTES de procesar
+  if (!validarFirmaWebhookMP(req)) {
+    console.error('❌ Webhook rechazado: firma inválida');
+    return res.status(401).send('Invalid signature');
+  }
+
+  res.sendStatus(200); // respondemos rápido
 
   try {
     const { type, data } = req.body;
 
-    // Solo nos interesa cuando hay un pago
     if (type !== 'payment' || !data?.id) {
       console.log('Webhook ignorado (no es pago):', type);
       return;
     }
 
-    // Buscar el pago real en MercadoPago para confirmar que fue aprobado
     const payment = new Payment(mpClient);
     const paymentInfo = await payment.get({ id: data.id });
 
@@ -176,25 +482,21 @@ app.post('/api/webhook/mercadopago', async (req, res) => {
       return;
     }
 
-    console.log(`✅ Pago ${data.id} aprobado. Generando guía con Envia...`);
+    console.log(`✅ Pago ${data.id} aprobado. Importando envío a MiCorreo...`);
 
-    // Recuperar los datos del pedido desde la metadata de la preferencia
     const payer = JSON.parse(paymentInfo.metadata?.payer_full || '{}');
     const items = JSON.parse(paymentInfo.metadata?.items_full || '[]');
     const orderRef = paymentInfo.external_reference || `MP-${data.id}`;
     const total = items.reduce((s, i) => s + (i.unit_price * i.quantity), 0);
 
-    // Generar guía en Envia
-    const envioResult = await crearEnvio({ payer, items, orderRef });
+    const envioResult = await crearEnvioCorreo({ payer, items, orderRef });
 
     if (envioResult.ok) {
-      console.log(`📦 Guía generada: ${envioResult.tracking || envioResult.shipmentId}`);
+      console.log(`📦 Envío importado a MiCorreo: ${orderRef}`);
     } else {
-      console.error('❌ Error generando guía:', envioResult.error);
+      console.error('❌ Error importando envío:', envioResult.error);
     }
 
-    // Notificar por mail siempre, haya andado Envia o no
-    // (si Envia falló, el admin recibe alerta y genera la guía a mano)
     await notificarVenta({
       payer, items, paymentId: data.id, orderRef, total, envioResult
     });
@@ -204,159 +506,94 @@ app.post('/api/webhook/mercadopago', async (req, res) => {
 });
 
 // ============================================================
-// ENVIA.COM: Funciones de cotización y generación de guía
+// Endpoints útiles
 // ============================================================
 
 /**
- * Convierte el carrito a la lista de paquetes que entiende Envia.
- * Cada presentación (1L o 4L) es una caja independiente porque
- * tienen pesos y medidas distintas.
+ * Prueba manual: importar un envío a MiCorreo (usado por test-envia.html)
  */
-function buildPackages(items) {
-  const packages = [];
-  for (const item of items) {
-    // Inferir el size desde el title del item (ej: "OXIDUR Negro - 1 LITRO")
-    const isFourLiters = /4\s*LITROS?/i.test(item.title);
-    const spec = isFourLiters ? PRODUCT_SPECS['4l'] : PRODUCT_SPECS['1l'];
-
-    for (let i = 0; i < item.quantity; i++) {
-      packages.push({
-        content: spec.name,
-        amount: 1,
-        type: 'box',
-        weight: spec.weight,
-        weightUnit: 'KG',
-        lengthUnit: 'CM',
-        dimensions: {
-          length: spec.length,
-          width:  spec.width,
-          height: spec.height
-        },
-        insurance: 0,
-        declaredValue: item.unit_price
-      });
-    }
-  }
-  return packages;
-}
+app.post('/api/envia/crear', async (req, res) => {
+  const result = await crearEnvioCorreo(req.body);
+  res.json(result);
+});
 
 /**
- * Genera el envío en Envia.com (un endpoint que cotiza y crea la guía).
+ * Validar credenciales: pide token y valida customerId
  */
-async function crearEnvio({ payer, items, orderRef }) {
+app.get('/api/correo/validar', async (req, res) => {
+  if (!CORREO_USER || !CORREO_PASSWORD) {
+    return res.json({ ok: false, error: 'CORREO_USER o CORREO_PASSWORD no configurados' });
+  }
+
   try {
-    const packages = buildPackages(items);
+    const token = await getCorreoToken();
+    const customerId = await getCustomerId();
+    res.json({
+      ok: true,
+      message: 'Credenciales válidas',
+      customerId,
+      tokenObtenido: true,
+      mode: CORREO_MODE
+    });
+  } catch (err) {
+    res.json({
+      ok: false,
+      status: err.response?.status,
+      error: err.response?.data?.message || err.response?.data?.error || err.message,
+      raw: err.response?.data
+    });
+  }
+});
+
+/**
+ * Cotizar un envío (sin generarlo)
+ */
+app.post('/api/correo/cotizar', async (req, res) => {
+  try {
+    const { destination, items, deliveredType } = req.body;
+    const customerId = await getCustomerId();
+    const shipping = buildShipping(items || []);
 
     const payload = {
-      origin: {
-        name: SENDER.name,
-        company: SENDER.company,
-        email: SENDER.email,
-        phone: SENDER.phone,
-        street: SENDER.street,
-        number: SENDER.number,
-        district: SENDER.district,
-        city: SENDER.city,
-        state: SENDER.state.code,
-        country: SENDER.country,
-        postalCode: SENDER.postalCode,
-        reference: SENDER.reference
-      },
-      destination: {
-        name: payer.name,
-        company: payer.name,
-        email: payer.email,
-        phone: payer.phone,
-        street: payer.address,
-        number: 'S/N',
-        district: payer.city || 'CABA',
-        city: payer.city || 'CABA',
-        state: 'B',                // por defecto Bs. As. (mejorable con un mapeo de provincia)
-        country: 'AR',
-        postalCode: payer.cp,
-        reference: ''
-      },
-      packages,
-      shipment: {
-        carrier: 'correoargentino',  // forzamos Correo Argentino mientras Envia destraba OCA/Andreani
-        type: 1,                     // 1 = paquete estándar
-        service: 'estandar'          // estandar | sucursal | domicilio — depende del carrier
-      },
-      settings: {
-        currency: 'ARS',
-        printFormat: 'PDF',         // PDF | ZPL | PNG — formato de la etiqueta
-        printSize: 'STOCK_4X6',     // tamaño de la etiqueta
-        comments: `Pedido ${orderRef}`
-      },
-      additionalServices: [],
-      sendEmail: true,             // que Envia mande email al cliente con el tracking
-      additionalInfo: `Pedido OXIDUR ${orderRef}`
-    };
-
-    const response = await axios.post(
-      `${ENVIA_BASE_URL}/ship/generate/`,
-      payload,
-      {
-        headers: {
-          'Authorization': `Bearer ${ENVIA_API_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        timeout: 20000
+      customerId,
+      postalCodeOrigin: SENDER.postalCodeOrigin,
+      postalCodeDestination: destination?.cp || destination?.postalCode,
+      ...(deliveredType ? { deliveredType } : {}), // 'D' / 'S' / null para ambos
+      dimensions: {
+        weight: shipping.weight,
+        height: shipping.height,
+        width: shipping.width,
+        length: shipping.length
       }
-    );
-
-    const data = response.data;
-    if (data.meta === 'generate' && data.data?.length > 0) {
-      const shipment = data.data[0];
-      return {
-        ok: true,
-        shipmentId: shipment.shipmentId,
-        tracking: shipment.trackingNumber,
-        labelUrl: shipment.label,
-        carrier: shipment.carrier
-      };
-    } else {
-      // Logueamos la respuesta completa para diagnosticar
-      console.error('Respuesta inesperada de Envia:');
-      console.error(JSON.stringify(data, null, 2));
-
-      // Extraer mensaje legible del error
-      let errorMsg = 'Respuesta inesperada de Envia';
-      if (typeof data.message === 'string') errorMsg = data.message;
-      else if (typeof data.error === 'string') errorMsg = data.error;
-      else if (data.error?.message) errorMsg = data.error.message;
-      else if (data.error?.description) errorMsg = data.error.description;
-
-      return {
-        ok: false,
-        error: errorMsg,
-        raw: data
-      };
-    }
-  } catch (err) {
-    // Logueamos el detalle completo del error
-    console.error('Error en llamada a Envia:');
-    if (err.response) {
-      console.error('Status:', err.response.status);
-      console.error('Body:', JSON.stringify(err.response.data, null, 2));
-    } else {
-      console.error('Mensaje:', err.message);
-    }
-
-    // Extraer mensaje legible
-    const errData = err.response?.data;
-    let errorMsg = err.message;
-    if (errData?.error?.message) errorMsg = errData.error.message;
-    else if (errData?.error?.description) errorMsg = errData.error.description;
-    else if (errData?.message) errorMsg = errData.message;
-
-    return {
-      ok: false,
-      error: errorMsg,
-      raw: errData
     };
+
+    const response = await correoRequest('POST', '/rates', payload);
+    res.json({ ok: true, data: response.data });
+  } catch (err) {
+    res.json({
+      ok: false,
+      status: err.response?.status,
+      error: err.response?.data?.message || err.message,
+      raw: err.response?.data
+    });
   }
-}
+});
+
+/**
+ * Tracking de un envío
+ */
+app.get('/api/correo/tracking/:shippingId', async (req, res) => {
+  try {
+    const response = await correoRequest('GET', '/shipping/tracking', null, {
+      shippingId: req.params.shippingId
+    });
+    res.json(response.data);
+  } catch (err) {
+    res.status(500).json({
+      error: err.response?.data?.message || err.message
+    });
+  }
+});
 
 // ============================================================
 // EMAILS (Resend)
@@ -364,10 +601,6 @@ async function crearEnvio({ payer, items, orderRef }) {
 
 const fmtMoney = n => '$' + Number(n).toLocaleString('es-AR');
 
-/**
- * Manda un email vía Resend.
- * Si no está configurada la API Key, no falla pero loguea aviso.
- */
 async function sendEmail({ to, subject, html, replyTo }) {
   if (!RESEND_API_KEY) {
     console.warn('⚠ RESEND_API_KEY no configurada, no se mandó email a:', to);
@@ -394,18 +627,11 @@ async function sendEmail({ to, subject, html, replyTo }) {
     );
     return { ok: true, id: response.data?.id };
   } catch (err) {
-    console.error('Error mandando email:');
-    console.error(err.response?.data || err.message);
-    return {
-      ok: false,
-      error: err.response?.data?.message || err.message
-    };
+    console.error('Error mandando email:', err.response?.data || err.message);
+    return { ok: false, error: err.response?.data?.message || err.message };
   }
 }
 
-/**
- * Plantilla HTML para el email al admin (Hidrosol)
- */
 function buildAdminEmail({ payer, items, paymentId, orderRef, total, envioResult }) {
   const itemsRows = items.map(i => `
     <tr>
@@ -416,75 +642,53 @@ function buildAdminEmail({ payer, items, paymentId, orderRef, total, envioResult
     </tr>
   `).join('');
 
-  let envioBlock = '';
-  if (envioResult?.ok) {
-    envioBlock = `
-      <div style="background:#1a4d2e;border-left:4px solid #2ecc71;padding:14px;margin:18px 0;border-radius:4px;">
-        <p style="margin:0;color:#7eddb1;font-weight:bold;">✓ Guía generada automáticamente</p>
-        <p style="margin:6px 0 0;color:#fff;font-size:14px;">
-          Tracking: <strong>${envioResult.tracking || envioResult.shipmentId}</strong><br>
-          ${envioResult.carrier ? `Carrier: ${envioResult.carrier}<br>` : ''}
-          ${envioResult.labelUrl ? `<a href="${envioResult.labelUrl}" style="color:#ff5b1f;">📄 Descargar etiqueta PDF</a>` : ''}
-        </p>
-      </div>
-    `;
-  } else {
-    envioBlock = `
-      <div style="background:#4d1a1a;border-left:4px solid #e74c3c;padding:14px;margin:18px 0;border-radius:4px;">
-        <p style="margin:0;color:#ffb0b0;font-weight:bold;">⚠ Guía NO generada — generala manualmente</p>
-        <p style="margin:6px 0 0;color:#fff;font-size:14px;">
-          Error: ${envioResult?.error || 'Sin detalle'}<br>
-          Andá al panel de Envia.com y creá la guía a mano con los datos del cliente.
-        </p>
-      </div>
-    `;
-  }
+  const envioBlock = envioResult?.ok ? `
+    <div style="background:#1a4d2e;border-left:4px solid #2ecc71;padding:14px;margin:18px 0;border-radius:4px;">
+      <p style="margin:0;color:#7eddb1;font-weight:bold;">✓ Envío importado a MiCorreo</p>
+      <p style="margin:6px 0 0;color:#fff;font-size:14px;">
+        Andá al panel de MiCorreo (correoargentino.com.ar) e imprimí el rótulo del pedido <strong>${orderRef}</strong>.
+      </p>
+    </div>
+  ` : `
+    <div style="background:#4d1a1a;border-left:4px solid #e74c3c;padding:14px;margin:18px 0;border-radius:4px;">
+      <p style="margin:0;color:#ffb0b0;font-weight:bold;">⚠ NO se importó el envío automáticamente</p>
+      <p style="margin:6px 0 0;color:#fff;font-size:14px;">
+        Error: ${envioResult?.error || 'Sin detalle'}<br>
+        Cargá el envío manual en el panel de MiCorreo.
+      </p>
+    </div>
+  `;
 
   return `
 <!DOCTYPE html>
-<html lang="es">
-<head><meta charset="UTF-8"></head>
+<html lang="es"><head><meta charset="UTF-8"></head>
 <body style="margin:0;padding:0;background:#0d0d0f;font-family:-apple-system,'Segoe UI',sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#0d0d0f;padding:24px 16px;">
     <tr><td align="center">
       <table width="600" cellpadding="0" cellspacing="0" style="background:#15161a;border:1px solid #2a2c33;max-width:600px;width:100%;">
-
-        <!-- HEADER -->
         <tr><td style="background:#ff5b1f;padding:24px;text-align:center;">
           <h1 style="margin:0;color:#0d0d0f;font-size:14px;letter-spacing:0.2em;text-transform:uppercase;font-weight:800;">🛒 Nueva venta · OXIDUR</h1>
         </td></tr>
-
-        <!-- TÍTULO -->
         <tr><td style="padding:30px 30px 10px;">
           <p style="margin:0;color:#9a9b9f;font-size:13px;letter-spacing:0.15em;text-transform:uppercase;">Pedido</p>
           <h2 style="margin:6px 0 0;color:#fff;font-size:28px;letter-spacing:0.02em;">${orderRef}</h2>
           <p style="margin:6px 0 0;color:#ff5b1f;font-size:32px;font-weight:bold;">${fmtMoney(total)}</p>
         </td></tr>
-
-        <!-- ESTADO ENVIO -->
         <tr><td style="padding:0 30px;">${envioBlock}</td></tr>
-
-        <!-- PRODUCTOS -->
         <tr><td style="padding:20px 30px;">
           <h3 style="color:#ff5b1f;font-size:13px;letter-spacing:0.2em;text-transform:uppercase;margin:0 0 12px;">Productos</h3>
           <table width="100%" cellpadding="0" cellspacing="0" style="color:#fff;font-size:14px;">
-            <thead>
-              <tr style="border-bottom:2px solid #2a2c33;">
-                <th style="padding:10px;text-align:left;color:#9a9b9f;font-size:12px;text-transform:uppercase;letter-spacing:0.1em;">Producto</th>
-                <th style="padding:10px;text-align:center;color:#9a9b9f;font-size:12px;text-transform:uppercase;letter-spacing:0.1em;">Cant</th>
-                <th style="padding:10px;text-align:right;color:#9a9b9f;font-size:12px;text-transform:uppercase;letter-spacing:0.1em;">Precio</th>
-                <th style="padding:10px;text-align:right;color:#9a9b9f;font-size:12px;text-transform:uppercase;letter-spacing:0.1em;">Subtotal</th>
-              </tr>
-            </thead>
+            <thead><tr style="border-bottom:2px solid #2a2c33;">
+              <th style="padding:10px;text-align:left;color:#9a9b9f;font-size:12px;text-transform:uppercase;letter-spacing:0.1em;">Producto</th>
+              <th style="padding:10px;text-align:center;color:#9a9b9f;font-size:12px;text-transform:uppercase;letter-spacing:0.1em;">Cant</th>
+              <th style="padding:10px;text-align:right;color:#9a9b9f;font-size:12px;text-transform:uppercase;letter-spacing:0.1em;">Precio</th>
+              <th style="padding:10px;text-align:right;color:#9a9b9f;font-size:12px;text-transform:uppercase;letter-spacing:0.1em;">Subtotal</th>
+            </tr></thead>
             <tbody>${itemsRows}</tbody>
-            <tfoot>
-              <tr><td colspan="3" style="padding:14px 10px;text-align:right;color:#fff;font-size:16px;">Total cobrado:</td>
-              <td style="padding:14px 10px;text-align:right;color:#ff5b1f;font-size:20px;font-weight:bold;">${fmtMoney(total)}</td></tr>
-            </tfoot>
+            <tfoot><tr><td colspan="3" style="padding:14px 10px;text-align:right;color:#fff;font-size:16px;">Total cobrado:</td>
+              <td style="padding:14px 10px;text-align:right;color:#ff5b1f;font-size:20px;font-weight:bold;">${fmtMoney(total)}</td></tr></tfoot>
           </table>
         </td></tr>
-
-        <!-- CLIENTE -->
         <tr><td style="padding:20px 30px;border-top:1px solid #2a2c33;">
           <h3 style="color:#ff5b1f;font-size:13px;letter-spacing:0.2em;text-transform:uppercase;margin:0 0 12px;">Cliente</h3>
           <table width="100%" cellpadding="0" cellspacing="0" style="color:#fff;font-size:14px;">
@@ -494,17 +698,13 @@ function buildAdminEmail({ payer, items, paymentId, orderRef, total, envioResult
             <tr><td style="padding:6px 0;color:#9a9b9f;">DNI:</td><td style="padding:6px 0;">${payer.dni || '-'}</td></tr>
           </table>
         </td></tr>
-
-        <!-- ENVIO -->
         <tr><td style="padding:20px 30px;border-top:1px solid #2a2c33;">
           <h3 style="color:#ff5b1f;font-size:13px;letter-spacing:0.2em;text-transform:uppercase;margin:0 0 12px;">Dirección de envío</h3>
           <p style="margin:0;color:#fff;font-size:15px;line-height:1.6;">
-            ${payer.address || '-'}<br>
+            ${payer.address || '-'}${payer.floor ? ` · <strong style="color:#ff5b1f;">${payer.floor}</strong>` : ''}<br>
             ${payer.city || '-'} · CP <strong>${payer.cp || '-'}</strong>
           </p>
         </td></tr>
-
-        <!-- PAGO -->
         <tr><td style="padding:20px 30px;border-top:1px solid #2a2c33;">
           <h3 style="color:#ff5b1f;font-size:13px;letter-spacing:0.2em;text-transform:uppercase;margin:0 0 12px;">Pago</h3>
           <p style="margin:0;color:#fff;font-size:14px;">
@@ -512,23 +712,15 @@ function buildAdminEmail({ payer, items, paymentId, orderRef, total, envioResult
             <span style="color:#9a9b9f;">Estado:</span> <span style="color:#2ecc71;font-weight:bold;">Aprobado</span>
           </p>
         </td></tr>
-
-        <!-- FOOTER -->
         <tr><td style="background:#0d0d0f;padding:18px;text-align:center;border-top:1px solid #2a2c33;">
-          <p style="margin:0;color:#9a9b9f;font-size:11px;letter-spacing:0.15em;text-transform:uppercase;">OXIDUR · Notificación automática · ${new Date().toLocaleString('es-AR')}</p>
+          <p style="margin:0;color:#9a9b9f;font-size:11px;letter-spacing:0.15em;text-transform:uppercase;">OXIDUR · ${new Date().toLocaleString('es-AR')}</p>
         </td></tr>
-
       </table>
     </td></tr>
   </table>
-</body>
-</html>
-  `;
+</body></html>`;
 }
 
-/**
- * Plantilla HTML para el email al cliente
- */
 function buildClientEmail({ payer, items, orderRef, total, envioResult }) {
   const itemsRows = items.map(i => `
     <tr>
@@ -538,55 +730,29 @@ function buildClientEmail({ payer, items, orderRef, total, envioResult }) {
     </tr>
   `).join('');
 
-  const trackingBlock = envioResult?.ok && envioResult?.tracking ? `
-    <div style="background:#fff8f0;border:2px solid #ff5b1f;padding:18px;margin:20px 0;border-radius:6px;text-align:center;">
-      <p style="margin:0;color:#9a9b9f;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;font-weight:bold;">Tu número de tracking</p>
-      <p style="margin:8px 0 0;color:#ff5b1f;font-size:24px;font-weight:bold;letter-spacing:0.04em;">${envioResult.tracking}</p>
-      <p style="margin:8px 0 0;color:#9a9b9f;font-size:13px;">Vas a recibir un email del transportista con el seguimiento en detalle.</p>
-    </div>
-  ` : `
-    <div style="background:#fff8f0;border:2px solid #ff5b1f;padding:18px;margin:20px 0;border-radius:6px;text-align:center;">
-      <p style="margin:0;color:#0d0d0f;font-size:14px;">Estamos preparando tu envío. En las próximas horas te llega un mail con el número de tracking.</p>
-    </div>
-  `;
-
   return `
 <!DOCTYPE html>
-<html lang="es">
-<head><meta charset="UTF-8"></head>
+<html lang="es"><head><meta charset="UTF-8"></head>
 <body style="margin:0;padding:0;background:#f4f4f1;font-family:-apple-system,'Segoe UI',sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f1;padding:24px 16px;">
     <tr><td align="center">
       <table width="600" cellpadding="0" cellspacing="0" style="background:#fff;max-width:600px;width:100%;box-shadow:0 4px 20px rgba(0,0,0,0.08);">
-
-        <!-- HEADER NEGRO -->
         <tr><td style="background:#0d0d0f;padding:30px;text-align:center;">
           <h1 style="margin:0;color:#fff;font-size:32px;letter-spacing:0.06em;font-weight:800;">OXIDUR</h1>
           <p style="margin:6px 0 0;color:#ff5b1f;font-size:11px;letter-spacing:0.3em;text-transform:uppercase;">Esmalte Antioxidante</p>
         </td></tr>
-
-        <!-- BANNER NARANJA -->
         <tr><td style="background:#ff5b1f;padding:24px;text-align:center;">
           <h2 style="margin:0;color:#0d0d0f;font-size:26px;letter-spacing:0.02em;">¡Gracias por tu compra!</h2>
         </td></tr>
-
-        <!-- SALUDO -->
         <tr><td style="padding:30px 30px 0;">
           <p style="margin:0;color:#0d0d0f;font-size:16px;line-height:1.6;">Hola <strong>${payer.name?.split(' ')[0] || 'amigx'}</strong>,</p>
-          <p style="margin:14px 0 0;color:#5a5a5a;font-size:15px;line-height:1.6;">Recibimos tu pedido y ya estamos preparándolo. Te contamos los detalles:</p>
+          <p style="margin:14px 0 0;color:#5a5a5a;font-size:15px;line-height:1.6;">Recibimos tu pedido y ya estamos preparándolo. Te enviamos por Correo Argentino y en las próximas 24 horas vas a recibir el número de tracking.</p>
         </td></tr>
-
-        <!-- TRACKING -->
-        <tr><td style="padding:0 30px;">${trackingBlock}</td></tr>
-
-        <!-- PEDIDO -->
-        <tr><td style="padding:10px 30px;">
+        <tr><td style="padding:20px 30px;">
           <p style="margin:0 0 6px;color:#9a9b9f;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;font-weight:bold;">Número de pedido</p>
           <p style="margin:0;color:#0d0d0f;font-size:18px;font-weight:bold;">${orderRef}</p>
         </td></tr>
-
-        <!-- PRODUCTOS -->
-        <tr><td style="padding:20px 30px;">
+        <tr><td style="padding:0 30px 20px;">
           <table width="100%" cellpadding="0" cellspacing="0" style="border-top:2px solid #0d0d0f;border-bottom:2px solid #0d0d0f;">
             ${itemsRows}
             <tr style="border-top:1px solid #e0e0e0;">
@@ -595,30 +761,22 @@ function buildClientEmail({ payer, items, orderRef, total, envioResult }) {
             </tr>
           </table>
         </td></tr>
-
-        <!-- ENVIO GRATIS -->
         <tr><td style="padding:10px 30px 20px;">
           <div style="background:#1f8a3f;color:#fff;padding:16px;text-align:center;border-radius:4px;">
-            <p style="margin:0;font-size:13px;letter-spacing:0.15em;text-transform:uppercase;font-weight:700;">📦 Envío gratis a todo el país</p>
+            <p style="margin:0;font-size:13px;letter-spacing:0.15em;text-transform:uppercase;font-weight:700;">📦 Envío gratis · Correo Argentino</p>
           </div>
         </td></tr>
-
-        <!-- DIRECCIÓN -->
         <tr><td style="padding:0 30px 20px;">
           <p style="margin:0 0 6px;color:#9a9b9f;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;font-weight:bold;">Dirección de envío</p>
           <p style="margin:0;color:#0d0d0f;font-size:15px;line-height:1.6;">
-            ${payer.address}<br>
+            ${payer.address}${payer.floor ? ` · ${payer.floor}` : ''}<br>
             ${payer.city} · CP ${payer.cp}
           </p>
         </td></tr>
-
-        <!-- TIEMPOS -->
         <tr><td style="padding:0 30px 20px;">
-          <p style="margin:0 0 6px;color:#9a9b9f;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;font-weight:bold;">Tiempo estimado de entrega</p>
+          <p style="margin:0 0 6px;color:#9a9b9f;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;font-weight:bold;">Tiempo estimado</p>
           <p style="margin:0;color:#0d0d0f;font-size:15px;">3 a 7 días hábiles según el destino</p>
         </td></tr>
-
-        <!-- CONTACTO -->
         <tr><td style="background:#f4f4f1;padding:24px 30px;text-align:center;">
           <p style="margin:0;color:#0d0d0f;font-size:14px;font-weight:bold;">¿Necesitás ayuda?</p>
           <p style="margin:10px 0 0;">
@@ -626,275 +784,55 @@ function buildClientEmail({ payer, items, orderRef, total, envioResult }) {
             <a href="mailto:microfloor1@hotmail.com" style="display:inline-block;background:#0d0d0f;color:#fff;padding:10px 20px;text-decoration:none;border-radius:4px;font-size:14px;font-weight:bold;margin-left:8px;">✉ Email</a>
           </p>
         </td></tr>
-
-        <!-- FOOTER -->
         <tr><td style="background:#0d0d0f;padding:20px;text-align:center;">
           <p style="margin:0;color:#9a9b9f;font-size:11px;">OXIDUR · HIDROSOL SRL · Industria Argentina</p>
           <p style="margin:6px 0 0;color:#9a9b9f;font-size:11px;">tiendaoxidur.com</p>
         </td></tr>
-
       </table>
     </td></tr>
   </table>
-</body>
-</html>
-  `;
+</body></html>`;
 }
 
-/**
- * Notificar la venta por mail al admin y al cliente.
- * Se llama después de que se acredita el pago.
- */
 async function notificarVenta({ payer, items, paymentId, orderRef, total, envioResult }) {
   const itemSummary = items.map(i => `${i.title} ×${i.quantity}`).join(', ');
 
-  // Email al admin
   if (ADMIN_EMAILS.length > 0) {
-    const adminResult = await sendEmail({
+    const r = await sendEmail({
       to: ADMIN_EMAILS,
       subject: `🛒 Nueva venta · ${fmtMoney(total)} · ${itemSummary}`,
       html: buildAdminEmail({ payer, items, paymentId, orderRef, total, envioResult }),
       replyTo: payer.email
     });
-    console.log(adminResult.ok
-      ? `📧 Email a admin enviado: ${ADMIN_EMAILS.join(', ')}`
-      : `❌ Email admin falló: ${adminResult.error}`);
+    console.log(r.ok ? `📧 Email admin enviado` : `❌ Email admin falló: ${r.error}`);
   }
 
-  // Email al cliente
   if (payer.email) {
-    const clientResult = await sendEmail({
+    const r = await sendEmail({
       to: payer.email,
       subject: `¡Gracias por tu compra en OXIDUR! 🎉 · ${orderRef}`,
       html: buildClientEmail({ payer, items, orderRef, total, envioResult })
     });
-    console.log(clientResult.ok
-      ? `📧 Email a cliente enviado: ${payer.email}`
-      : `❌ Email cliente falló: ${clientResult.error}`);
+    console.log(r.ok ? `📧 Email cliente enviado` : `❌ Email cliente falló: ${r.error}`);
   }
 }
 
-/**
- * Endpoint manual para generar guía desde el panel
- * (útil si MP falla o querés generar una guía a mano)
- */
-app.post('/api/envia/crear', async (req, res) => {
-  const result = await crearEnvio(req.body);
-  res.json(result);
-});
-
-/**
- * Endpoint para cotizar un envío sin crear guía
- * (no se usa en el flujo de "envío gratis", pero queda disponible
- *  para chequear cuánto te va a costar a vos cada pedido)
- */
-app.post('/api/envia/cotizar', async (req, res) => {
-  try {
-    const { destination, items } = req.body;
-    const packages = buildPackages(items);
-
-    const payload = {
-      origin: {
-        country: SENDER.country,
-        postalCode: SENDER.postalCode,
-        state: SENDER.state.code,
-        city: SENDER.city
-      },
-      destination: {
-        country: 'AR',
-        postalCode: destination.cp,
-        state: destination.state || 'B',
-        city: destination.city || 'CABA'
-      },
-      packages,
-      shipment: { carrier: 'correoargentino', type: 1, service: 'estandar' },
-      settings: { currency: 'ARS' }
-    };
-
-    const response = await axios.post(
-      `${ENVIA_BASE_URL}/ship/rate/`,
-      payload,
-      {
-        headers: {
-          'Authorization': `Bearer ${ENVIA_API_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        timeout: 15000
-      }
-    );
-
-    res.json(response.data);
-  } catch (err) {
-    res.status(500).json({
-      error: err.response?.data?.message || err.message
-    });
-  }
-});
-
-/**
- * Endpoint de diagnóstico: prueba qué servicios de Correo Argentino
- * están disponibles para tu cuenta. Útil para ver si el problema es
- * con un servicio específico ('estandar', 'sucursal', 'domicilio', etc).
- */
-app.get('/api/envia/test-carriers', async (req, res) => {
-  // Probamos variantes del servicio "Estándar a Domicilio"
-  // que el panel de Envia muestra como única opción disponible
-  const services = [
-    'estandar_domicilio',
-    'estandar-domicilio',
-    'estandar a domicilio',
-    'estandarDomicilio',
-    'estandar',
-    'home',
-    'door_to_door',
-    'estandar_a_domicilio',
-    'st-d',
-    'std',
-    'CORREO_ESTANDAR_DOMICILIO',
-    'PAQUETE_ESTANDAR'
-  ];
-  const results = {};
-
-  // Cotización dummy: paquete chico de Gerli a CABA
-  const basePayload = {
-    origin: {
-      country: 'AR',
-      postalCode: SENDER.postalCode,
-      state: SENDER.state.code,
-      city: SENDER.city,
-      district: SENDER.district
-    },
-    destination: {
-      country: 'AR',
-      postalCode: '1414',
-      state: 'B',
-      city: 'CABA',
-      district: 'CABA'
-    },
-    packages: [{
-      content: 'Test',
-      amount: 1,
-      type: 'box',
-      weight: 1.1,
-      weightUnit: 'KG',
-      lengthUnit: 'CM',
-      dimensions: { length: 12, width: 12, height: 15 },
-      insurance: 0,
-      declaredValue: 8500
-    }],
-    settings: { currency: 'ARS' }
-  };
-
-  for (const service of services) {
-    try {
-      const r = await axios.post(
-        `${ENVIA_BASE_URL}/ship/rate/`,
-        { ...basePayload, shipment: { carrier: 'correoargentino', type: 1, service } },
-        {
-          headers: {
-            'Authorization': `Bearer ${ENVIA_API_KEY}`,
-            'Content-Type': 'application/json'
-          },
-          timeout: 15000
-        }
-      );
-      results[service] = {
-        ok: true,
-        data: r.data
-      };
-    } catch (err) {
-      results[service] = {
-        ok: false,
-        status: err.response?.status,
-        error: err.response?.data?.error || err.response?.data?.message || err.message,
-        raw: err.response?.data
-      };
-    }
-  }
-
-  res.json(results);
-});
-
-/**
- * Endpoint que cotiza SIN especificar servicio.
- * Envia debería devolver TODOS los carriers/servicios disponibles
- * para tu cuenta y te muestra los precios de cada uno.
- */
-app.get('/api/envia/listar-disponibles', async (req, res) => {
-  const carrier = req.query.carrier; // opcional: filtrar por carrier (ej. ?carrier=correoargentino)
-
-  const payload = {
-    origin: {
-      country: 'AR',
-      postalCode: SENDER.postalCode,
-      state: SENDER.state.code,
-      city: SENDER.city,
-      district: SENDER.district
-    },
-    destination: {
-      country: 'AR',
-      postalCode: '1414',
-      state: 'B',
-      city: 'CABA',
-      district: 'CABA'
-    },
-    packages: [{
-      content: 'Test',
-      amount: 1,
-      type: 'box',
-      weight: 1.1,
-      weightUnit: 'KG',
-      lengthUnit: 'CM',
-      dimensions: { length: 12, width: 12, height: 15 },
-      insurance: 0,
-      declaredValue: 8500
-    }],
-    settings: { currency: 'ARS' }
-  };
-
-  // Si se pasa carrier, filtramos. Sino, sin filtro = devuelve todos
-  if (carrier) {
-    payload.shipment = { carrier };
-  }
-
-  try {
-    const r = await axios.post(
-      `${ENVIA_BASE_URL}/ship/rate/`,
-      payload,
-      {
-        headers: {
-          'Authorization': `Bearer ${ENVIA_API_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        timeout: 20000
-      }
-    );
-    res.json({ ok: true, data: r.data });
-  } catch (err) {
-    res.json({
-      ok: false,
-      status: err.response?.status,
-      error: err.response?.data?.error || err.response?.data?.message || err.message,
-      raw: err.response?.data
-    });
-  }
-});
-
 // ============================================================
-// HEALTH CHECK
+// HEALTH CHECK + Test endpoints
 // ============================================================
+
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
-    mp: !!MP_ACCESS_TOKEN && !MP_ACCESS_TOKEN.includes('PEGAR'),
-    envia: !!ENVIA_API_KEY && !ENVIA_API_KEY.includes('PEGAR'),
-    enviaMode: ENVIA_MODE,
+    mp: !!MP_ACCESS_TOKEN,
+    correo: !!CORREO_USER && !!CORREO_PASSWORD,
+    correoMode: CORREO_MODE,
+    correoCustomerId: cachedCustomerId || null,
     resend: !!RESEND_API_KEY,
     adminEmails: ADMIN_EMAILS.length
   });
 });
 
-// Endpoint de prueba de email — manda un mail de muestra a los admins
 app.get('/api/email/test', async (req, res) => {
   if (!RESEND_API_KEY) {
     return res.status(400).json({ ok: false, error: 'RESEND_API_KEY no configurada' });
@@ -908,16 +846,14 @@ app.get('/api/email/test', async (req, res) => {
     city: 'CABA',
     cp: '1414'
   };
-  const fakeItems = [
-    { title: 'OXIDUR Negro - 1 LITRO', quantity: 1, unit_price: 8500 }
-  ];
+  const fakeItems = [{ title: 'OXIDUR Negro - 1 LITRO', quantity: 1, unit_price: 8500 }];
   await notificarVenta({
     payer: fakePayer,
     items: fakeItems,
     paymentId: 'TEST-PAYMENT-001',
     orderRef: 'OXIDUR-TEST-' + Date.now(),
     total: 8500,
-    envioResult: { ok: false, error: 'Esto es una prueba — la guía no se generó realmente' }
+    envioResult: { ok: false, error: 'Esto es una prueba' }
   });
   res.json({
     ok: true,
@@ -930,12 +866,12 @@ app.get('/api/email/test', async (req, res) => {
 // ============================================================
 // ARRANQUE
 // ============================================================
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`✅ OXIDUR server corriendo en puerto ${PORT}`);
-  console.log(`   Modo Envia: ${ENVIA_MODE}`);
-  console.log(`   MP configurado: ${!!MP_ACCESS_TOKEN && !MP_ACCESS_TOKEN.includes('PEGAR')}`);
-  console.log(`   Envia configurado: ${!!ENVIA_API_KEY && !ENVIA_API_KEY.includes('PEGAR')}`);
-  console.log(`   Resend (emails): ${!!RESEND_API_KEY ? 'sí' : 'no'}`);
+  console.log(`   MP: ${!!MP_ACCESS_TOKEN ? 'sí' : 'no'}`);
+  console.log(`   MiCorreo: ${!!CORREO_USER && !!CORREO_PASSWORD ? 'sí' : 'no'} (modo: ${CORREO_MODE})`);
+  console.log(`   Resend: ${!!RESEND_API_KEY ? 'sí' : 'no'}`);
   console.log(`   Admin emails: ${ADMIN_EMAILS.join(', ') || 'ninguno'}`);
 });

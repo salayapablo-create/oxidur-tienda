@@ -1,37 +1,17 @@
 <!DOCTYPE html>
 <html lang="es-AR">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>OXIDUR · Esmalte Antioxidante · Directo sobre el óxido</title>
-    <meta name="description" content="OXIDUR: esmalte de base acuosa para pintar directamente sobre metales oxidados. Sin lijar. Envío gratis a todo el país." />
-    <link rel="icon" type="image/svg+xml" href="media/logo.svg">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>OXIDUR · Esmalte Antioxidante · Directo sobre el óxido</title>
+<meta name="description" content="OXIDUR: esmalte de base acuosa para pintar directamente sobre metales oxidados. Sin lijar. Envío gratis a todo el país." />
+<link rel="icon" type="image/svg+xml" href="media/logo.svg">
 
-    <!-- ==================== META PIXEL ==================== -->
-    <!-- Meta Pixel Code -->
-    <script>
-    !function(f,b,e,v,n,t,s)
-    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-    n.queue=[];t=b.createElement(e);t.async=!0;
-    t.src=v;s=b.getElementsByTagName(e)[0];
-    s.parentNode.insertBefore(t,s)}(window, document,'script',
-    'https://connect.facebook.net/en_US/fbevents.js');
-    fbq('init', '1773734336921154');
-    fbq('track', 'PageView');
-    </script>
-    <noscript><img height="1" width="1" style="display:none"
-    src="https://www.facebook.com/tr?id=1773734336921154&ev=PageView&noscript=1"
-    /></noscript>
-    <!-- End Meta Pixel Code -->
-    <!-- ================================================== -->
+<!-- Fonts: Anton (display industrial) + Barlow Condensed (sub) + Barlow (body) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow+Condensed:wght@400;500;600;700;800&family=Barlow:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow+Condensed:wght@400;500;600;700;800&family=Barlow:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
 <style>
   :root {
     --bg: #0d0d0f;
@@ -2059,13 +2039,15 @@
   }
   .mp-btn:hover { background: #0079b3; }
   .mp-info {
-    background: var(--bg-3);
-    border: 1px solid var(--border);
-    padding: 14px;
-    font-size: 13px;
+    background: rgba(31, 138, 63, 0.08);
+    border: 1px solid rgba(31, 138, 63, 0.3);
+    padding: 12px 14px;
+    font-size: 12px;
     color: var(--text-dim);
     margin-top: 16px;
     border-radius: 4px;
+    text-align: center;
+    letter-spacing: 0.02em;
   }
   .mp-info strong { color: var(--text); }
 
@@ -2643,6 +2625,10 @@
       <label>Dirección de envío</label>
       <input type="text" id="ckAddr" placeholder="Av. Corrientes 1234" />
     </div>
+    <div class="form-row">
+      <label>Piso / Depto <span style="color:var(--text-dim);font-weight:400;font-size:11px;text-transform:none;letter-spacing:0">(opcional)</span></label>
+      <input type="text" id="ckFloor" placeholder="Ej: 5° B · PB 2 · Casa" />
+    </div>
     <div class="form-row-grid">
       <div class="form-row">
         <label>Ciudad</label>
@@ -2658,59 +2644,14 @@
       Pagar con MercadoPago
     </button>
     <div class="mp-info">
-      <strong>Configuración pendiente:</strong> Para activar el pago real, hace falta configurar tus credenciales de MercadoPago. Mientras tanto, este botón simula el flujo.
+      🔒 Pago 100% seguro · Procesado por MercadoPago · Aceptamos tarjetas, débito y efectivo
     </div>
     <div class="modal-actions">
       <button class="btn-ghost" id="ckCancel" style="flex:1">Cancelar</button>
     </div>
   </div>
 </div>
-      <!-- ==================== META PIXEL EVENTS - VERSIÓN FINAL (RECOMENDADA) ==================== -->
-    <script>
-        console.log("✅ Meta Pixel Events FINAL cargados");
 
-        // ViewContent
-        window.addEventListener('load', () => {
-            setTimeout(() => {
-                fbq('track', 'ViewContent', {
-                    content_ids: ['oxidur-negro'],
-                    content_type: 'product',
-                    content_name: 'OXIDUR Negro',
-                    value: 8500,
-                    currency: 'ARS'
-                });
-            }, 800);
-        });
-
-        // AddToCart
-        document.addEventListener('click', (e) => {
-            const text = (e.target.textContent || '').trim().toUpperCase();
-            if (text.includes("AGREGAR AL CARRITO")) {
-                fbq('track', 'AddToCart', {
-                    content_ids: ['oxidur-negro'],
-                    content_type: 'product',
-                    content_name: 'OXIDUR',
-                    value: 8500,
-                    currency: 'ARS'
-                });
-            }
-        });
-
-        // InitiateCheckout - Disparamos cuando se hace clic en el botón del carrito (antes del modal)
-        document.addEventListener('click', (e) => {
-            const text = (e.target.textContent || e.target.innerText || '').trim().toUpperCase();
-            if (text.includes("FINALIZAR COMPRA") || text.includes("CHECKOUT")) {
-                fbq('track', 'InitiateCheckout', {
-                    value: 8500,
-                    currency: 'ARS',
-                    num_items: 1
-                });
-                console.log("💳 InitiateCheckout disparado desde el carrito");
-            }
-        });
-    </script>
-    <!-- ================================================== -->
-
-    <script src="app.js"></script>
+<script src="app.js"></script>
 </body>
 </html>
