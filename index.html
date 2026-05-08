@@ -2655,3 +2655,33 @@
 <script src="app.js"></script>
 </body>
 </html>
+/* FIX CAMPOS CHECKOUT - Fondo blanco */
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+input[type="number"],
+input[type="password"],
+textarea,
+select {
+    background-color: #ffffff !important;
+    color: #222222 !important;
+    border: 1px solid #ccc !important;
+    border-radius: 6px !important;
+    padding: 12px 15px !important;
+    box-shadow: none !important;
+}
+
+input::placeholder {
+    color: #666666 !important;
+    opacity: 1 !important;
+}
+
+/* Cuando el usuario hace foco */
+input:focus,
+select:focus,
+textarea:focus {
+    background-color: #ffffff !important;
+    border-color: #0066ff !important;
+    outline: none !important;
+    box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.15) !important;
+}
