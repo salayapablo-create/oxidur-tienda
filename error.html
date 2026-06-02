@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pago no completado · OXIDUR</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0d0d0f;
+      color: #fff;
+      font-family: -apple-system, 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .card {
+      background: #18181b;
+      border: 1px solid #2a2c33;
+      border-radius: 8px;
+      max-width: 480px;
+      width: 100%;
+      overflow: hidden;
+      text-align: center;
+    }
+    .card-header {
+      background: #0d0d0f;
+      padding: 32px 24px 24px;
+      border-bottom: 1px solid #2a2c33;
+    }
+    .logo {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      color: #fff;
+    }
+    .logo span { color: #ff5b1f; }
+    .card-body { padding: 40px 32px; }
+    .icon-wrap {
+      width: 72px;
+      height: 72px;
+      background: #c1241f22;
+      border: 2px solid #c1241f;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 24px;
+    }
+    .icon-wrap svg { color: #e74c3c; }
+    h1 {
+      font-size: 24px;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 12px;
+    }
+    p {
+      color: #9a9b9f;
+      font-size: 15px;
+      line-height: 1.6;
+      margin-bottom: 10px;
+    }
+    p strong { color: #fff; }
+    .btns {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 28px;
+    }
+    .btn {
+      display: inline-block;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      padding: 14px 24px;
+      border-radius: 4px;
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+    .btn-primary { background: #ff5b1f; color: #fff; }
+    .btn-primary:hover { background: #e04e18; }
+    .btn-secondary { background: #25d366; color: #fff; }
+    .btn-secondary:hover { background: #1da855; }
+    .card-footer {
+      padding: 18px;
+      border-top: 1px solid #2a2c33;
+    }
+    .card-footer p {
+      font-size: 11px;
+      color: #555;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="card-header">
+      <div class="logo">OXI<span>DUR</span></div>
+    </div>
+    <div class="card-body">
+      <div class="icon-wrap">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </div>
+      <h1>El pago no se completó</h1>
+      <p>No se procesó ningún cobro. Podés volver a intentarlo o contactarnos si necesitás ayuda.</p>
+      <p>Si el problema persiste, escribinos por <strong>WhatsApp</strong> y lo resolvemos enseguida.</p>
+      <div class="btns">
+        <a href="/" class="btn btn-primary">Reintentar compra</a>
+        <a href="https://wa.me/5491158533291?text=Hola!%20Tuve%20un%20problema%20al%20pagar%20en%20la%20tienda%20OXIDUR" class="btn btn-secondary">💬 WhatsApp</a>
+      </div>
+    </div>
+    <div class="card-footer">
+      <p>OXIDUR · HIDROSOL SRL · Industria Argentina</p>
+    </div>
+  </div>
+</body>
+</html>

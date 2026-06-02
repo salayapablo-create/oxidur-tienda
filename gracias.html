@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>¡Gracias por tu compra! · OXIDUR</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0d0d0f;
+      color: #fff;
+      font-family: -apple-system, 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .card {
+      background: #18181b;
+      border: 1px solid #2a2c33;
+      border-radius: 8px;
+      max-width: 480px;
+      width: 100%;
+      overflow: hidden;
+      text-align: center;
+    }
+    .card-header {
+      background: #0d0d0f;
+      padding: 32px 24px 24px;
+      border-bottom: 1px solid #2a2c33;
+    }
+    .logo {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      color: #fff;
+    }
+    .logo span { color: #ff5b1f; }
+    .card-body { padding: 40px 32px; }
+    .icon-wrap {
+      width: 72px;
+      height: 72px;
+      background: #1f8a3f22;
+      border: 2px solid #1f8a3f;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 24px;
+    }
+    .icon-wrap svg { color: #2ecc71; }
+    h1 {
+      font-size: 24px;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 12px;
+    }
+    p {
+      color: #9a9b9f;
+      font-size: 15px;
+      line-height: 1.6;
+      margin-bottom: 10px;
+    }
+    p strong { color: #fff; }
+    .badge {
+      display: inline-block;
+      background: #1f8a3f;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      padding: 6px 14px;
+      border-radius: 4px;
+      margin: 16px 0 28px;
+    }
+    .btn {
+      display: inline-block;
+      background: #ff5b1f;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      padding: 14px 28px;
+      border-radius: 4px;
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+    .btn:hover { background: #e04e18; }
+    .card-footer {
+      padding: 18px;
+      border-top: 1px solid #2a2c33;
+    }
+    .card-footer p {
+      font-size: 11px;
+      color: #555;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="card-header">
+      <div class="logo">OXI<span>DUR</span></div>
+    </div>
+    <div class="card-body">
+      <div class="icon-wrap">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+      </div>
+      <h1>¡Compra confirmada!</h1>
+      <p>Tu pago fue procesado correctamente. <strong>Te enviamos un email</strong> con los detalles del pedido.</p>
+      <p>Preparamos tu OXIDUR y lo despachamos por <strong>Correo Argentino</strong>. En las próximas 24 horas recibís el número de tracking.</p>
+      <div class="badge">📦 Envío gratis · 3 a 7 días hábiles</div>
+      <br>
+      <a href="/" class="btn">Volver a la tienda</a>
+    </div>
+    <div class="card-footer">
+      <p>OXIDUR · HIDROSOL SRL · Industria Argentina</p>
+    </div>
+  </div>
+</body>
+</html>
