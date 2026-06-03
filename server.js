@@ -220,21 +220,41 @@ async function getCorreoToken() {
     throw new Error('CORREO_USER o CORREO_PASSWORD no configurados');
   }
 
-  // Login con HTTP Basic Auth
+  // Login con HTTP Basic Auth.
+  // Algunos ambientes de MiCorreo devuelven 415 si no se manda Content-Type explícito
+  // aunque el body esté vacío. Por eso lo seteamos.
   const response = await axios.post(
     `${CORREO_BASE_URL}/token`,
-    null,
+    '', // body vacío como string (no null, evita el 415 en algunos ambientes)
     {
       auth: { username: CORREO_USER, password: CORREO_PASSWORD },
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
       timeout: 15000
     }
   );
 
   cachedToken = response.data.token;
-  // expires viene como "2022-04-26 21:16:20"
-  tokenExpiry = new Date(response.data.expires.replace(' ', 'T') + '-03:00').getTime();
 
-  console.log(`🔑 Token MiCorreo obtenido. Expira: ${response.data.expires}`);
+  // expires puede venir como "2022-04-26 21:16:20" (formato MiCorreo)
+  // o ya como ISO. Manejamos ambos casos.
+  const expiresRaw = response.data.expires;
+  if (expiresRaw) {
+    try {
+      tokenExpiry = new Date(expiresRaw.replace(' ', 'T') + '-03:00').getTime();
+      if (isNaN(tokenExpiry)) {
+        tokenExpiry = Date.now() + 90 * 60 * 1000; // fallback: 90min
+      }
+    } catch (e) {
+      tokenExpiry = Date.now() + 90 * 60 * 1000;
+    }
+  } else {
+    tokenExpiry = Date.now() + 90 * 60 * 1000; // si no hay expires, asumimos 90min
+  }
+
+  console.log(`🔑 Token MiCorreo obtenido. Expira: ${expiresRaw || 'desconocido'}`);
   return cachedToken;
 }
 
@@ -525,6 +545,15 @@ app.get('/api/correo/validar', async (req, res) => {
     return res.json({ ok: false, error: 'CORREO_USER o CORREO_PASSWORD no configurados' });
   }
 
+  // Info de diagnóstico segura (no expone password)
+  const diag = {
+    url: `${CORREO_BASE_URL}/token`,
+    userLength: CORREO_USER.length,
+    userFirst3: CORREO_USER.slice(0, 3),
+    passwordLength: CORREO_PASSWORD.length,
+    mode: CORREO_MODE
+  };
+
   try {
     const token = await getCorreoToken();
     const customerId = await getCustomerId();
@@ -533,14 +562,16 @@ app.get('/api/correo/validar', async (req, res) => {
       message: 'Credenciales válidas',
       customerId,
       tokenObtenido: true,
-      mode: CORREO_MODE
+      diag
     });
   } catch (err) {
     res.json({
       ok: false,
       status: err.response?.status,
+      statusText: err.response?.statusText,
       error: err.response?.data?.message || err.response?.data?.error || err.message,
-      raw: err.response?.data
+      raw: err.response?.data || null,
+      diag
     });
   }
 });
